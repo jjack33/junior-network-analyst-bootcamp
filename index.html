@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A zero-setup Junior Network Analyst bootcamp classroom tool for instructors and students.">
+  <title>Junior Network Analyst: Zero-Setup Bootcamp</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div>
+        <p class="eyebrow">90-minute classroom tool</p>
+        <h1>Junior Network Analyst: Zero-Setup Bootcamp</h1>
+      </div>
+      <div class="session-meta" aria-label="Session requirements">
+        <span>Google Slides</span>
+        <span>Meeting chat</span>
+        <span>Emoji reactions</span>
+        <span>Free browser tools</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar" aria-label="Bootcamp sections">
+      <div class="timer-card">
+        <span class="timer-label">Session clock</span>
+        <strong id="session-time">00:00</strong>
+        <div class="timer-actions">
+          <button class="icon-button" id="timer-toggle" type="button" aria-label="Start timer">Start</button>
+          <button class="icon-button secondary" id="timer-reset" type="button" aria-label="Reset timer">Reset</button>
+        </div>
+      </div>
+      <nav id="section-nav" class="section-nav"></nav>
+    </aside>
+
+    <section class="workspace" aria-live="polite">
+      <div class="section-toolbar">
+        <button class="icon-button secondary" id="prev-section" type="button">Previous</button>
+        <div>
+          <p class="eyebrow" id="section-time">00-10 minutes</p>
+          <h2 id="section-title">Warm-Up: Fix or Fail?</h2>
+        </div>
+        <button class="icon-button" id="next-section" type="button">Next</button>
+      </div>
+
+      <div id="section-content" class="section-content"></div>
+    </section>
+  </main>
+
+  <template id="activity-shell">
+    <article class="activity-panel">
+      <div class="activity-copy"></div>
+      <div class="activity-body"></div>
+      <div class="instructor-panel">
+        <div>
+          <strong>Instructor move</strong>
+          <p class="instructor-note"></p>
+        </div>
+        <div class="control-row"></div>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
