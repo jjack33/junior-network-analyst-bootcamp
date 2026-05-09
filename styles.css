@@ -362,6 +362,35 @@ h3 {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.match-item p {
+  margin: 8px 0 0;
+}
+
+.match-form {
+  display: grid;
+  gap: 10px;
+}
+
+.match-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.match-row select {
+  min-height: 44px;
+  color: var(--text);
+  background: #05070a;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
 .mistake-list {
   counter-reset: mistake;
   list-style: none;
@@ -453,7 +482,8 @@ h3 {
   }
 
   .grid.two,
-  .match-grid {
+  .match-grid,
+  .match-row {
     grid-template-columns: 1fr;
   }
 }
