@@ -31,6 +31,41 @@ const sections = [
         prompt: "Subnet mask: 255.255.255.0\nPC A: 192.168.1.10\nPC B: 192.168.1.20",
         answer: "FIX",
         why: "Both devices are in the same /24 neighborhood."
+      },
+      {
+        prompt: "PC IP: 192.168.10.22\nMask: 255.255.255.0\nGateway: 192.168.10.1",
+        answer: "FIX",
+        why: "The host and gateway are in the same /24 network."
+      },
+      {
+        prompt: "PC IP: 10.1.4.25\nMask: 255.255.255.0\nGateway: 10.1.5.1",
+        answer: "FAIL",
+        why: "With a /24 mask, 10.1.4.x and 10.1.5.x are different local networks."
+      },
+      {
+        prompt: "Ethernet status: Media Disconnected",
+        answer: "FAIL",
+        why: "The physical link is down. Start with the cable, wall jack, or switch port."
+      },
+      {
+        prompt: "PC can ping 8.8.8.8 but cannot browse to example.com.",
+        answer: "FAIL",
+        why: "IP connectivity works, but name resolution is likely failing."
+      },
+      {
+        prompt: "DHCP enabled: Yes\nIP Address: 169.254.44.8",
+        answer: "FAIL",
+        why: "A 169.254 address usually means DHCP failed and APIPA assigned a fallback address."
+      },
+      {
+        prompt: "Switch port light is green and blinking.",
+        answer: "FIX",
+        why: "A blinking green link light usually means the port is connected and passing traffic."
+      },
+      {
+        prompt: "Default Gateway field is blank on a PC that needs Internet access.",
+        answer: "FAIL",
+        why: "Without a default gateway, the PC cannot leave its local network."
       }
     ]
   },
@@ -71,6 +106,60 @@ const sections = [
         choices: ["Layer 1", "Layer 3", "Layer 7", "Layer 4"],
         answer: 0,
         why: "Physical cabling, ports, and signals are Layer 1."
+      },
+      {
+        q: "Which protocol automatically assigns IP settings?",
+        choices: ["DNS", "DHCP", "HTTP", "SSH"],
+        answer: 1,
+        why: "DHCP leases IP addresses and other network settings."
+      },
+      {
+        q: "Which protocol resolves names like example.com to IP addresses?",
+        choices: ["DNS", "ARP", "NTP", "FTP"],
+        answer: 0,
+        why: "DNS translates hostnames into IP addresses."
+      },
+      {
+        q: "Which command tests whether another host responds?",
+        choices: ["ping", "format", "mkdir", "copy"],
+        answer: 0,
+        why: "ping sends echo requests to test reachability and latency."
+      },
+      {
+        q: "Which address is the loopback address?",
+        choices: ["192.168.1.1", "8.8.8.8", "127.0.0.1", "169.254.1.1"],
+        answer: 2,
+        why: "127.0.0.1 tests the local TCP/IP stack."
+      },
+      {
+        q: "What is the standard port for HTTPS?",
+        choices: ["21", "53", "80", "443"],
+        answer: 3,
+        why: "HTTPS commonly uses TCP port 443."
+      },
+      {
+        q: "Which device connects different IP networks?",
+        choices: ["Switch", "Router", "Patch panel", "Hub"],
+        answer: 1,
+        why: "Routers move traffic between networks."
+      },
+      {
+        q: "Which address type does ARP help discover?",
+        choices: ["MAC", "DNS", "URL", "SSID"],
+        answer: 0,
+        why: "ARP maps an IP address to a MAC address on the local network."
+      },
+      {
+        q: "What does VLAN stand for?",
+        choices: ["Virtual Local Area Network", "Verified LAN Access Node", "Variable Link Address Name", "Virtual Login Access Number"],
+        answer: 0,
+        why: "A VLAN creates a logical network segment."
+      },
+      {
+        q: "Which command shows detailed Windows network settings, including MAC address?",
+        choices: ["ipconfig /all", "ping /all", "show all", "net use"],
+        answer: 0,
+        why: "ipconfig /all shows adapter details including physical address."
       }
     ]
   },
@@ -116,6 +205,42 @@ const sections = [
         choices: ["ipconfig /renew", "ping 127.0.0.1", "tracert 8.8.8.8", "netstat"],
         answer: 0,
         why: "ipconfig /renew requests a new lease from DHCP."
+      },
+      {
+        prompt: "You want to see the MAC address, DNS servers, and DHCP status on Windows.",
+        choices: ["ipconfig /all", "ping -t", "tracert", "hostname"],
+        answer: 0,
+        why: "ipconfig /all shows detailed adapter configuration."
+      },
+      {
+        prompt: "You suspect a hostname is resolving to the wrong IP address.",
+        choices: ["nslookup example.com", "ping 127.0.0.1", "ipconfig /release", "net use"],
+        answer: 0,
+        why: "nslookup checks DNS answers for a name."
+      },
+      {
+        prompt: "You need to confirm your local TCP/IP stack works before testing the network.",
+        choices: ["ping 127.0.0.1", "tracert 8.8.8.8", "show vlan", "nslookup"],
+        answer: 0,
+        why: "Pinging loopback tests the local network stack."
+      },
+      {
+        prompt: "A user says the network is slow. You want a quick latency check to the gateway.",
+        choices: ["ping 192.168.1.1", "ipconfig /all", "format", "show version"],
+        answer: 0,
+        why: "ping gives a fast reachability and latency test."
+      },
+      {
+        prompt: "You want to see active connections and listening ports on a Windows machine.",
+        choices: ["netstat -ano", "ipconfig /renew", "tracert", "nslookup"],
+        answer: 0,
+        why: "netstat can show active connections and listening ports."
+      },
+      {
+        prompt: "A switch troubleshooting question asks which VLAN a port belongs to.",
+        choices: ["show vlan", "ping 8.8.8.8", "ipconfig", "nslookup"],
+        answer: 0,
+        why: "show vlan is the switch-side command for VLAN membership."
       }
     ]
   },
@@ -162,6 +287,42 @@ const sections = [
         prompt: "What IP address do you ping to test the local network stack on the same computer?",
         answers: ["127.0.0.1", "loopback"],
         success: "Loopback confirmed. 127.0.0.1 tests the local TCP/IP stack."
+      },
+      {
+        label: "Puzzle 7: The Name Service",
+        prompt: "The server can reach 8.8.8.8 but not google.com. Which service should you check?",
+        answers: ["dns", "dns server"],
+        success: "Correct. DNS is responsible for name resolution."
+      },
+      {
+        label: "Puzzle 8: The Lease",
+        prompt: "What protocol gives clients IP addresses automatically?",
+        answers: ["dhcp"],
+        success: "Correct. DHCP assigns IP settings."
+      },
+      {
+        label: "Puzzle 9: The Switch Clue",
+        prompt: "What Layer 2 address does a switch use to forward frames?",
+        answers: ["mac", "mac address"],
+        success: "Correct. Switches forward based on MAC addresses."
+      },
+      {
+        label: "Puzzle 10: The Secure Shell",
+        prompt: "What standard port is used by SSH?",
+        answers: ["22"],
+        success: "Correct. SSH uses port 22."
+      },
+      {
+        label: "Puzzle 11: The Web Door",
+        prompt: "What standard port is used by unsecured HTTP?",
+        answers: ["80"],
+        success: "Correct. HTTP uses port 80."
+      },
+      {
+        label: "Puzzle 12: The Map",
+        prompt: "What command shows the path traffic takes through routers on Windows?",
+        answers: ["tracert"],
+        success: "Correct. tracert shows router hops."
       }
     ]
   },
@@ -207,6 +368,42 @@ const sections = [
         choices: ["Check that room's switch uplink", "Replace the Internet firewall", "Change every user's password", "Clear browser cache"],
         answer: 0,
         why: "A shared local failure points to the common device or uplink."
+      },
+      {
+        prompt: "A user has 169.254.12.9 and no default gateway. Other users are fine.",
+        choices: ["Check DHCP or renew the lease", "Replace the website", "Change the monitor", "Disable DNS"],
+        answer: 0,
+        why: "APIPA indicates the client did not receive DHCP settings."
+      },
+      {
+        prompt: "A desktop can ping the gateway but cannot ping 8.8.8.8. Other departments can use the Internet.",
+        choices: ["Check routing/firewall beyond the gateway", "Replace the keyboard", "Ignore the gateway", "Change HTTP to HTTPS"],
+        answer: 0,
+        why: "The local path works, so investigate the next hop, route, or policy."
+      },
+      {
+        prompt: "A user can browse websites but cannot open a shared folder by server name. The server works by IP address.",
+        choices: ["Name resolution issue", "Bad Ethernet cable", "Dead power supply", "Wrong screen resolution"],
+        answer: 0,
+        why: "Access by IP but not by name points to DNS or name resolution."
+      },
+      {
+        prompt: "Everyone on VLAN 20 can print. Everyone on VLAN 30 cannot print to the same printer.",
+        choices: ["Check inter-VLAN routing or ACLs", "Replace the printer toner", "Restart every laptop", "Change HTTPS port"],
+        answer: 0,
+        why: "A VLAN-specific failure points to routing, ACL, or subnet policy."
+      },
+      {
+        prompt: "A switch shows a port as administratively down.",
+        choices: ["Enable the port with no shutdown", "Replace DNS", "Renew DHCP on the server", "Change the subnet mask first"],
+        answer: 0,
+        why: "Administratively down means the port was manually disabled."
+      },
+      {
+        prompt: "A user reports intermittent drops only when moving the laptop around.",
+        choices: ["Inspect cable or Wi-Fi signal quality", "Change the website URL", "Disable the default gateway", "Clear ARP on every router"],
+        answer: 0,
+        why: "Movement-related drops point to physical connection or wireless signal."
       }
     ]
   },
@@ -217,19 +414,55 @@ const sections = [
     type: "matching",
     intro: "Match each command to the job it performs, then check the answers.",
     instructor: "Have students make a selection for every row before checking the key.",
-    commands: [
-      { command: "Ping", answer: "C", prompt: "Are you there, Server?" },
-      { command: "Tracert", answer: "A", prompt: "Show me the path to Google" },
-      { command: "Ipconfig", answer: "B", prompt: "Am I connected to the wall?" },
-      { command: "Nslookup", answer: "D", prompt: "Can this name turn into an IP address?" },
-      { command: "Ipconfig /all", answer: "E", prompt: "Show me detailed network settings, including MAC and DNS" }
-    ],
-    options: [
-      ["A", "Show me the path to Google"],
-      ["B", "Am I connected to the wall?"],
-      ["C", "Are you there, Server?"],
-      ["D", "Can this name turn into an IP address?"],
-      ["E", "Show me detailed network settings, including MAC and DNS"]
+    sets: [
+      {
+        commands: [
+          { command: "Ping", answer: "C", prompt: "Are you there, Server?" },
+          { command: "Tracert", answer: "A", prompt: "Show me the path to Google" },
+          { command: "Ipconfig", answer: "B", prompt: "Am I connected to the wall?" },
+          { command: "Nslookup", answer: "D", prompt: "Can this name turn into an IP address?" },
+          { command: "Ipconfig /all", answer: "E", prompt: "Show me detailed network settings, including MAC and DNS" }
+        ],
+        options: [
+          ["A", "Show me the path to Google"],
+          ["B", "Am I connected to the wall?"],
+          ["C", "Are you there, Server?"],
+          ["D", "Can this name turn into an IP address?"],
+          ["E", "Show me detailed network settings, including MAC and DNS"]
+        ]
+      },
+      {
+        commands: [
+          { command: "DHCP", answer: "B", prompt: "Automatically hands out IP settings" },
+          { command: "DNS", answer: "D", prompt: "Turns names into IP addresses" },
+          { command: "ARP", answer: "A", prompt: "Finds a MAC address for a local IP" },
+          { command: "SSH", answer: "E", prompt: "Secure remote command-line access" },
+          { command: "HTTPS", answer: "C", prompt: "Secure web browsing" }
+        ],
+        options: [
+          ["A", "Finds a MAC address for a local IP"],
+          ["B", "Automatically hands out IP settings"],
+          ["C", "Secure web browsing"],
+          ["D", "Turns names into IP addresses"],
+          ["E", "Secure remote command-line access"]
+        ]
+      },
+      {
+        commands: [
+          { command: "Switch", answer: "D", prompt: "Forwards traffic by MAC address" },
+          { command: "Router", answer: "B", prompt: "Connects different networks" },
+          { command: "Default Gateway", answer: "E", prompt: "The exit from the local network" },
+          { command: "Subnet Mask", answer: "A", prompt: "Identifies the network portion" },
+          { command: "NIC", answer: "C", prompt: "The computer's network interface" }
+        ],
+        options: [
+          ["A", "Identifies the network portion"],
+          ["B", "Connects different networks"],
+          ["C", "The computer's network interface"],
+          ["D", "Forwards traffic by MAC address"],
+          ["E", "The exit from the local network"]
+        ]
+      }
     ]
   },
   {
@@ -288,24 +521,50 @@ const sections = [
       ["What command releases a DHCP lease on Windows?", "ipconfig /release"],
       ["What kind of address does a switch learn?", "MAC address"],
       ["What kind of address does a router use for routing?", "IP address"],
-      ["What command checks DNS from the terminal?", "nslookup"]
+      ["What command checks DNS from the terminal?", "nslookup"],
+      ["What port does DNS usually use?", "53"],
+      ["What port does SSH usually use?", "22"],
+      ["What does ACL stand for?", "Access Control List"],
+      ["What does STP help prevent?", "Switching loops"],
+      ["What command shows the route table on Windows?", "route print"],
+      ["What does TTL stand for?", "Time To Live"],
+      ["What does LAN stand for?", "Local Area Network"],
+      ["What does WAN stand for?", "Wide Area Network"],
+      ["Which tool tests a cable physically?", "Cable tester"],
+      ["What is another name for a MAC address?", "Physical address"],
+      ["What does SSID name?", "A wireless network"],
+      ["Which protocol secures web traffic?", "HTTPS"],
+      ["Which command continuously pings on Windows?", "ping -t"],
+      ["What does PoE provide over Ethernet?", "Power"],
+      ["What does NAT translate?", "Private and public IP addresses"],
+      ["What device filters traffic by rule?", "Firewall"]
     ]
+  },
+  {
+    id: "bookmarks",
+    time: "Review later",
+    title: "Bookmarked Review",
+    type: "bookmarks",
+    intro: "Review saved questions and scenarios from this browser.",
+    instructor: "Bookmarks are stored locally in the student's browser so they can revisit tough items later."
   }
 ];
 
 let currentSection = 0;
 let timerSeconds = 0;
 let timerId = null;
+const bookmarkStorageKey = "jna-bootcamp-bookmarks";
 const state = {
-  warmup: { index: 0, revealed: false },
-  sprint: { index: 0, revealed: false },
-  command: { index: 0, selected: null, revealed: false },
-  escape: { index: 0, complete: false },
-  detective: { index: 0, selected: null, revealed: false },
-  matching: { revealed: false, selections: {} },
+  warmup: { index: 0, revealed: false, order: [], position: 0 },
+  sprint: { index: 0, revealed: false, order: [], position: 0 },
+  command: { index: 0, selected: null, revealed: false, order: [], position: 0 },
+  escape: { index: 0, complete: false, order: [], position: 0 },
+  detective: { index: 0, selected: null, revealed: false, order: [], position: 0 },
+  matching: { revealed: false, selections: {}, order: [], position: 0 },
   mistakes: { revealed: false },
-  final: { revealed: false, page: 0 }
+  final: { revealed: false, page: 0, order: [] }
 };
+let bookmarks = loadBookmarks();
 
 const nav = document.getElementById("section-nav");
 const title = document.getElementById("section-title");
@@ -353,6 +612,7 @@ function renderSection() {
   if (section.type === "matching") renderMatching(section);
   if (section.type === "mistakes") renderMistakes(section);
   if (section.type === "finalQuiz") renderFinalQuiz(section);
+  if (section.type === "bookmarks") renderBookmarks(section);
 }
 
 function panel(section) {
@@ -369,10 +629,11 @@ function renderFixFail(section) {
   const body = view.querySelector(".activity-body");
   const controls = view.querySelector(".control-row");
   const local = state.warmup;
-  const item = section.items[local.index];
+  const activeIndex = getActiveRotatingIndex(local, section.items.length);
+  const item = section.items[activeIndex];
   body.innerHTML = `
     <div class="prompt-card">
-      <p class="eyebrow">Scenario ${local.index + 1} of ${section.items.length}</p>
+      <p class="eyebrow">Scenario ${local.position + 1} of ${section.items.length}</p>
       <code class="code-output">${escapeHtml(item.prompt)}</code>
     </div>
     <div class="answer-row">
@@ -397,13 +658,23 @@ function renderFixFail(section) {
       local.revealed = true;
       renderSection();
     }),
+    makeButton(getBookmarkLabel("warmup", activeIndex), () => {
+      toggleBookmark({
+        id: "warmup-" + activeIndex,
+        section: section.title,
+        prompt: item.prompt,
+        answer: item.answer,
+        why: item.why
+      });
+      renderSection();
+    }, "secondary"),
     makeButton("Next Scenario", () => {
-      local.index = (local.index + 1) % section.items.length;
+      advanceRotation(local, section.items.length);
       local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Reset", () => {
-      local.index = 0;
+      resetRotation(local, section.items.length);
       local.revealed = false;
       renderSection();
     }, "secondary")
@@ -415,11 +686,12 @@ function renderRapidQuiz(section) {
   const body = view.querySelector(".activity-body");
   const controls = view.querySelector(".control-row");
   const local = state.sprint;
-  const q = section.questions[local.index];
+  const activeIndex = getActiveRotatingIndex(local, section.questions.length);
+  const q = section.questions[activeIndex];
   const letters = ["A", "B", "C", "D"];
   body.innerHTML = `
     <div class="prompt-card">
-      <p class="eyebrow">Question ${local.index + 1} of ${section.questions.length} | A=thumbs up B=heart C=surprised D=clap</p>
+      <p class="eyebrow">Question ${local.position + 1} of ${section.questions.length} | A=thumbs up B=heart C=surprised D=clap</p>
       <p class="large-prompt">${q.q}</p>
     </div>
     <div class="grid two">
@@ -440,13 +712,23 @@ function renderRapidQuiz(section) {
       local.revealed = true;
       renderSection();
     }),
+    makeButton(getBookmarkLabel("sprint", activeIndex), () => {
+      toggleBookmark({
+        id: "sprint-" + activeIndex,
+        section: section.title,
+        prompt: q.q,
+        answer: letters[q.answer] + ". " + q.choices[q.answer],
+        why: q.why
+      });
+      renderSection();
+    }, "secondary"),
     makeButton("Next Question", () => {
-      local.index = (local.index + 1) % section.questions.length;
+      advanceRotation(local, section.questions.length);
       local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Reset", () => {
-      local.index = 0;
+      resetRotation(local, section.questions.length);
       local.revealed = false;
       renderSection();
     }, "secondary")
@@ -459,11 +741,11 @@ function renderSingleChoice(section) {
   const controls = view.querySelector(".control-row");
   const local = state[section.id];
   const questions = section.questions || [section];
-  const activeIndex = local.index || 0;
+  const activeIndex = getActiveRotatingIndex(local, questions.length);
   const active = questions[activeIndex];
   body.innerHTML = `
     <div class="prompt-card">
-      <p class="eyebrow">Question ${activeIndex + 1} of ${questions.length}</p>
+      <p class="eyebrow">Question ${local.position + 1} of ${questions.length}</p>
       <p class="large-prompt">${active.prompt}</p>
     </div>
     <div class="grid">
@@ -489,14 +771,24 @@ function renderSingleChoice(section) {
       local.revealed = true;
       renderSection();
     }),
+    makeButton(getBookmarkLabel(section.id, activeIndex), () => {
+      toggleBookmark({
+        id: section.id + "-" + activeIndex,
+        section: section.title,
+        prompt: active.prompt,
+        answer: active.choices[active.answer],
+        why: active.why
+      });
+      renderSection();
+    }, "secondary"),
     makeButton("Next Question", () => {
-      local.index = (activeIndex + 1) % questions.length;
+      advanceRotation(local, questions.length);
       local.selected = null;
       local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Reset", () => {
-      local.index = 0;
+      resetRotation(local, questions.length);
       local.selected = null;
       local.revealed = false;
       renderSection();
@@ -509,10 +801,11 @@ function renderEscape(section) {
   const body = view.querySelector(".activity-body");
   const controls = view.querySelector(".control-row");
   const local = state.escape;
-  const lock = section.locks[local.index];
+  const activeIndex = getActiveRotatingIndex(local, section.locks.length);
+  const lock = section.locks[activeIndex];
   body.innerHTML = `
     <div class="prompt-card">
-      <p class="eyebrow">${lock.label}</p>
+      <p class="eyebrow">${lock.label} | Lock ${local.position + 1} of ${section.locks.length}</p>
       <p class="large-prompt">${lock.prompt}</p>
     </div>
     <form class="input-row" id="escape-form">
@@ -531,10 +824,10 @@ function renderEscape(section) {
     if (lock.answers.includes(value)) {
       feedback.className = "feedback correct";
       feedback.textContent = lock.success;
-      if (local.index === section.locks.length - 1) {
+      if (local.position === section.locks.length - 1) {
         local.complete = true;
       } else {
-        local.index += 1;
+        advanceRotation(local, section.locks.length);
         setTimeout(renderSection, 650);
       }
     } else {
@@ -548,12 +841,23 @@ function renderEscape(section) {
       feedback.className = "feedback correct";
       feedback.textContent = `Answer: ${lock.answers[0]}. ${lock.success}`;
     }),
+    makeButton(getBookmarkLabel("escape", activeIndex), () => {
+      toggleBookmark({
+        id: "escape-" + activeIndex,
+        section: section.title,
+        prompt: lock.label + ": " + lock.prompt,
+        answer: lock.answers[0],
+        why: lock.success
+      });
+      renderSection();
+    }, "secondary"),
     makeButton("Next Lock", () => {
-      local.index = Math.min(local.index + 1, section.locks.length - 1);
+      advanceRotation(local, section.locks.length);
+      local.complete = false;
       renderSection();
     }, "secondary"),
     makeButton("Reset", () => {
-      local.index = 0;
+      resetRotation(local, section.locks.length);
       local.complete = false;
       renderSection();
     }, "secondary")
@@ -565,30 +869,36 @@ function renderMatching(section) {
   const body = view.querySelector(".activity-body");
   const controls = view.querySelector(".control-row");
   const local = state.matching;
+  const activeSetIndex = getActiveRotatingIndex(local, section.sets.length);
+  const activeSet = section.sets[activeSetIndex];
   body.innerHTML = `
+    <div class="prompt-card">
+      <p class="eyebrow">Set ${local.position + 1} of ${section.sets.length}</p>
+      <p class="lead">Selections are checked for this set only.</p>
+    </div>
     <div class="match-grid">
       <div class="match-item">
         <strong>Commands</strong>
-        ${section.commands.map((item, index) => `<p>${index + 1}. ${item.command}</p>`).join("")}
+        ${activeSet.commands.map((item, index) => `<p>${index + 1}. ${item.command}</p>`).join("")}
       </div>
       <div class="match-item">
         <strong>Jobs</strong>
-        ${section.options.map(([letter, prompt]) => `<p>${letter}. ${prompt}</p>`).join("")}
+        ${activeSet.options.map(([letter, prompt]) => `<p>${letter}. ${prompt}</p>`).join("")}
       </div>
     </div>
     <div class="match-form">
-      ${section.commands.map((item, index) => `
+      ${activeSet.commands.map((item, index) => `
         <label class="match-row">
           <span>${index + 1}. ${item.command}</span>
           <select data-match="${index}" aria-label="Match ${item.command}">
             <option value="">Choose a letter</option>
-            ${section.options.map(([letter]) => `<option value="${letter}" ${local.selections[index] === letter ? "selected" : ""}>${letter}</option>`).join("")}
+            ${activeSet.options.map(([letter]) => `<option value="${letter}" ${local.selections[index] === letter ? "selected" : ""}>${letter}</option>`).join("")}
           </select>
         </label>
       `).join("")}
     </div>
-    <div class="feedback ${local.revealed ? getMatchingScore(section, local).className : "hidden"}">
-      ${local.revealed ? getMatchingScore(section, local).message : ""}
+    <div class="feedback ${local.revealed ? getMatchingScore(activeSet, local).className : "hidden"}">
+      ${local.revealed ? getMatchingScore(activeSet, local).message : ""}
     </div>
   `;
   body.querySelectorAll("[data-match]").forEach((select) => {
@@ -602,13 +912,30 @@ function renderMatching(section) {
       renderSection();
     }),
     makeButton("Reveal Key", () => {
-      section.commands.forEach((item, index) => {
+      activeSet.commands.forEach((item, index) => {
         local.selections[index] = item.answer;
       });
       local.revealed = true;
       renderSection();
     }, "secondary"),
+    makeButton(getBookmarkLabel("matching", activeSetIndex), () => {
+      toggleBookmark({
+        id: "matching-" + activeSetIndex,
+        section: section.title,
+        prompt: activeSet.commands.map((item, index) => `${index + 1}. ${item.command}`).join("\n"),
+        answer: activeSet.commands.map((item, index) => `${index + 1}-${item.answer}`).join(", "),
+        why: "Saved matching set for later practice."
+      });
+      renderSection();
+    }, "secondary"),
+    makeButton("Next Set", () => {
+      advanceRotation(local, section.sets.length);
+      local.revealed = false;
+      local.selections = {};
+      renderSection();
+    }, "secondary"),
     makeButton("Reset", () => {
+      resetRotation(local, section.sets.length);
       local.revealed = false;
       local.selections = {};
       renderSection();
@@ -632,17 +959,23 @@ function renderFinalQuiz(section) {
   const controls = view.querySelector(".control-row");
   const local = state.final;
   const pageSize = 10;
-  const pageCount = Math.ceil(section.questions.length / pageSize);
+  ensureFinalOrder(section.questions.length);
+  const pageCount = Math.ceil(state.final.order.length / pageSize);
   const page = Math.min(local.page, pageCount - 1);
   const start = page * pageSize;
-  const visibleQuestions = section.questions.slice(start, start + pageSize);
+  const visibleItems = state.final.order
+    .slice(start, start + pageSize)
+    .map((questionIndex) => ({
+      questionIndex,
+      item: section.questions[questionIndex]
+    }));
   body.innerHTML = `
     <div class="prompt-card">
       <p class="eyebrow">Set ${page + 1} of ${pageCount}</p>
       <p class="lead">Showing 10 questions from a ${section.questions.length}-question bank.</p>
     </div>
     <div class="grid">
-      ${visibleQuestions.map(([question, answer], index) => `
+      ${visibleItems.map(({ item: [question, answer] }, index) => `
         <div class="mini-card">
           <strong>${start + index + 1}. ${question}</strong>
           <p class="${local.revealed ? "" : "hidden"}">Answer: ${answer}</p>
@@ -659,7 +992,12 @@ function renderFinalQuiz(section) {
       renderSection();
     }),
     makeButton("Next 10", () => {
-      local.page = (page + 1) % pageCount;
+      if (page + 1 >= pageCount) {
+        state.final.order = shuffleIndices(section.questions.length);
+        local.page = 0;
+      } else {
+        local.page = page + 1;
+      }
       local.revealed = false;
       renderSection();
     }, "secondary"),
@@ -668,8 +1006,61 @@ function renderFinalQuiz(section) {
       local.revealed = false;
       renderSection();
     }, "secondary"),
+    makeButton("Bookmark Set", () => {
+      visibleItems.forEach(({ questionIndex, item: [question, answer] }) => {
+        addBookmark({
+          id: "final-" + questionIndex,
+          section: section.title,
+          prompt: question,
+          answer,
+          why: "Saved from the final mock challenge."
+        });
+      });
+      renderSection();
+    }, "secondary"),
     makeButton("Hide Key", () => {
       local.revealed = false;
+      renderSection();
+    }, "secondary")
+  );
+}
+
+function renderBookmarks(section) {
+  const view = panel(section);
+  const body = view.querySelector(".activity-body");
+  const controls = view.querySelector(".control-row");
+  if (!bookmarks.length) {
+    body.innerHTML = `
+      <div class="prompt-card">
+        <p class="large-prompt">No bookmarks yet.</p>
+        <p class="lead">Use Bookmark on activities to save questions, scenarios, and answer explanations here.</p>
+      </div>
+    `;
+  } else {
+    body.innerHTML = `
+      <div class="bookmark-list">
+        ${bookmarks.map((item) => `
+          <article class="bookmark-card">
+            <p class="eyebrow">${item.section}</p>
+            <h3>${escapeHtml(item.prompt)}</h3>
+            <p><strong>Answer:</strong> ${escapeHtml(item.answer)}</p>
+            <p>${escapeHtml(item.why)}</p>
+            <button class="icon-button secondary" data-remove-bookmark="${item.id}" type="button">Remove</button>
+          </article>
+        `).join("")}
+      </div>
+    `;
+    body.querySelectorAll("[data-remove-bookmark]").forEach((button) => {
+      button.addEventListener("click", () => {
+        removeBookmark(button.dataset.removeBookmark);
+        renderSection();
+      });
+    });
+  }
+  controls.append(
+    makeButton("Clear Bookmarks", () => {
+      bookmarks = [];
+      saveBookmarks();
       renderSection();
     }, "secondary")
   );
@@ -685,6 +1076,89 @@ function getMatchingScore(section, local) {
     className: correct === total ? "correct" : "wrong",
     message: `<strong>${correct} of ${total} correct.</strong> Key: ${key}`
   };
+}
+
+function getActiveRotatingIndex(local, length) {
+  ensureRotation(local, length);
+  local.index = local.order[local.position];
+  return local.index;
+}
+
+function ensureRotation(local, length) {
+  if (!local.order || local.order.length !== length) {
+    local.order = shuffleIndices(length);
+    local.position = 0;
+  }
+}
+
+function advanceRotation(local, length) {
+  ensureRotation(local, length);
+  if (local.position >= length - 1) {
+    local.order = shuffleIndices(length);
+    local.position = 0;
+  } else {
+    local.position += 1;
+  }
+  local.index = local.order[local.position];
+}
+
+function resetRotation(local, length) {
+  local.order = shuffleIndices(length);
+  local.position = 0;
+  local.index = local.order[0];
+}
+
+function ensureFinalOrder(length) {
+  if (!state.final.order || state.final.order.length !== length) {
+    state.final.order = shuffleIndices(length);
+    state.final.page = 0;
+  }
+}
+
+function shuffleIndices(length) {
+  const values = Array.from({ length }, (_, index) => index);
+  for (let index = values.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [values[index], values[swapIndex]] = [values[swapIndex], values[index]];
+  }
+  return values;
+}
+
+function loadBookmarks() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(bookmarkStorageKey) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveBookmarks() {
+  localStorage.setItem(bookmarkStorageKey, JSON.stringify(bookmarks));
+}
+
+function addBookmark(item) {
+  if (!bookmarks.some((bookmark) => bookmark.id === item.id)) {
+    bookmarks = [item, ...bookmarks];
+    saveBookmarks();
+  }
+}
+
+function removeBookmark(id) {
+  bookmarks = bookmarks.filter((bookmark) => bookmark.id !== id);
+  saveBookmarks();
+}
+
+function toggleBookmark(item) {
+  if (bookmarks.some((bookmark) => bookmark.id === item.id)) {
+    removeBookmark(item.id);
+  } else {
+    addBookmark(item);
+  }
+}
+
+function getBookmarkLabel(sectionId, itemIndex) {
+  return bookmarks.some((bookmark) => bookmark.id === sectionId + "-" + itemIndex) ? "Bookmarked" : "Bookmark";
 }
 
 function makeButton(label, onClick, variant = "") {
