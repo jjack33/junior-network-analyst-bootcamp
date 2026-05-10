@@ -703,21 +703,69 @@ const state = {
 };
 let bookmarks = loadBookmarks();
 let comptiaTimerId = null;
+let missedQuizState = { active: false, position: 0, revealed: false };
 
-function comptiaAdvance(local, bankLength, bookmarkItem, isWrong) {
+function comptiaAdvance(local, bankLength, bookmarkItem, isWrong, bank, sectionTitle) {
   if (comptiaTimerId) { clearTimeout(comptiaTimerId); comptiaTimerId = null; }
   if (isWrong) addBookmark(bookmarkItem);
   const revealedCount = Object.values(local.answers).filter((a) => a.revealed).length;
   const allDone = revealedCount >= bankLength;
+  if (allDone) {
+    setTimeout(() => showComptiaBankReview(local, bank, sectionTitle), 1200);
+    return;
+  }
   comptiaTimerId = setTimeout(() => {
     comptiaTimerId = null;
-    if (allDone) {
-      moveSection(1);
-    } else {
-      advanceRotation(local, bankLength);
-      renderSection();
-    }
+    advanceRotation(local, bankLength);
+    renderSection();
   }, 6000);
+}
+
+function showComptiaBankReview(local, bank, sectionTitle) {
+  if (comptiaTimerId) { clearTimeout(comptiaTimerId); comptiaTimerId = null; }
+  const answersArr = Object.values(local.answers).filter((a) => a.revealed);
+  const correctCount = answersArr.filter((a) => a.correct).length;
+  const total = answersArr.length;
+  const pct = total ? Math.round((correctCount / total) * 100) : 0;
+  const items = bank.questions || bank.items || [];
+  const wrongItems = Object.entries(local.answers)
+    .filter(([, a]) => a.revealed && !a.correct)
+    .map(([idx]) => {
+      const q = items[Number(idx)];
+      if (!q) return null;
+      const correctText = q.choices ? q.choices[q.answer] : q.answer;
+      const prompt = q.prompt || q.q || "(question)";
+      const why = q.why || "";
+      return { prompt, correctText, why };
+    }).filter(Boolean);
+
+  content.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "activity-panel";
+  div.innerHTML = `
+    <div class="activity-body">
+      <div class="prompt-card">
+        <p class="eyebrow">${escapeHtml(sectionTitle)} · ${escapeHtml(bank.label)} Complete</p>
+        <p class="large-prompt">Bank Review</p>
+        <p class="lead">Score: <strong class="${pct >= 70 ? "score-correct" : "score-wrong"}">${correctCount}/${total} (${pct}%)</strong></p>
+      </div>
+      ${wrongItems.length ? `
+        <div class="review-missed-list">
+          <p class="eyebrow">${wrongItems.length} missed question${wrongItems.length !== 1 ? "s" : ""}:</p>
+          ${wrongItems.map((item) => `
+            <div class="review-missed-item">
+              <p class="review-missed-prompt">${escapeHtml(item.prompt)}</p>
+              <p class="review-missed-answer"><strong>Correct:</strong> ${escapeHtml(item.correctText)}</p>
+              ${item.why ? `<p class="review-missed-why">${escapeHtml(item.why)}</p>` : ""}
+            </div>
+          `).join("")}
+        </div>
+      ` : `<p class="lead review-perfect">🎉 Perfect score! All ${total} questions correct.</p>`}
+    </div>
+    <div class="control-row"></div>
+  `;
+  content.appendChild(div);
+  div.querySelector(".control-row").appendChild(makeButton("Continue to Next Section →", () => moveSection(1)));
 }
 
 function injectCountdownBar(body) {
@@ -798,6 +846,25 @@ function init() {
   document.getElementById("comptia-mode").addEventListener("click", () => setAppMode("comptia"));
   document.getElementById("timer-toggle").addEventListener("click", toggleTimer);
   document.getElementById("timer-reset").addEventListener("click", resetTimer);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.target.matches("input, textarea, select")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    const section = sections[currentSection];
+    if (!section) return;
+    const body = content.querySelector(".activity-body");
+    if (!body) return;
+    const key = e.key.toUpperCase();
+    if (section.type === "fixFail") {
+      if (key === "F") { e.preventDefault(); body.querySelector('[data-answer="FIX"]')?.click(); }
+      else if (key === "X") { e.preventDefault(); body.querySelector('[data-answer="FAIL"]')?.click(); }
+      else if (key === "ENTER") { e.preventDefault(); content.querySelector(".control-row button")?.click(); }
+    } else if (section.type === "rapidQuiz" || section.type === "singleChoice" || section.type === "finalQuiz") {
+      const idx = ["A", "B", "C", "D"].indexOf(key);
+      if (idx !== -1) { e.preventDefault(); body.querySelector(`[data-choice="${idx}"]`)?.click(); }
+      else if (key === "ENTER") { e.preventDefault(); content.querySelector(".control-row button")?.click(); }
+    }
+  });
 }
 
 function renderNav() {
@@ -833,7 +900,10 @@ function renderSection() {
   if (section.type === "matching") renderMatching(section);
   if (section.type === "mistakes") renderMistakes(section);
   if (section.type === "finalQuiz") renderFinalQuiz(section);
-  if (section.type === "bookmarks") renderBookmarks(section);
+  if (section.type === "bookmarks") {
+    if (missedQuizState.active && bookmarks.length) { renderMissedQuiz(); return; }
+    renderBookmarks(section);
+  }
 }
 
 function panel(section) {
@@ -873,6 +943,7 @@ function renderFixFail(section) {
         return `<button class="choice-button ${selected} ${correct} ${wrong}" data-answer="${choice}" type="button">${choice}</button>`;
       }).join("")}
     </div>
+    <p class="keyboard-hint"><kbd>F</kbd> = FIX · <kbd>X</kbd> = FAIL · <kbd>Enter</kbd> to submit</p>
     <div class="feedback ${local.revealed ? getResultClass(local.selected, item.answer) : "hidden"}">
       ${answerDetailHtml({ answer: item.answer, why: item.why, prompt: item.prompt, reasoning: item.reasoning })}
     </div>
@@ -908,7 +979,7 @@ function renderFixFail(section) {
           prompt: item.prompt,
           answer: item.answer,
           why: item.why
-        }, !isCorrect);
+        }, !isCorrect, bank, section.title);
       }
     }),
     makeButton(getBookmarkLabel("warmup", activeIndex), () => {
@@ -974,6 +1045,7 @@ function renderRapidQuiz(section) {
         return `<button class="choice-button ${selected} ${correct} ${wrong}" data-choice="${index}" type="button">${letters[index]}. ${choice}</button>`;
       }).join("")}
     </div>
+    <p class="keyboard-hint"><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd> to select · <kbd>Enter</kbd> to submit</p>
     <div class="feedback ${local.revealed ? getResultClass(local.selected, q.answer) : "hidden"}">
       ${answerDetailHtml({ answer: letters[q.answer] + ". " + q.choices[q.answer], why: q.why, prompt: q.q, reasoning: q.reasoning })}
     </div>
@@ -1004,7 +1076,7 @@ function renderRapidQuiz(section) {
           prompt: q.q,
           answer: letters[q.answer] + ". " + q.choices[q.answer],
           why: q.why
-        }, !isCorrect);
+        }, !isCorrect, bank, section.title);
       }
     }),
     makeButton(getBookmarkLabel("sprint", activeIndex), () => {
@@ -1070,6 +1142,7 @@ function renderSingleChoice(section) {
         return `<button class="choice-button ${selected} ${result} ${wrong}" data-choice="${index}" type="button">${index + 1}. ${choice}</button>`;
       }).join("")}
     </div>
+    <p class="keyboard-hint"><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd> to select · <kbd>Enter</kbd> to submit</p>
     <div class="feedback ${local.revealed ? getResultClass(local.selected, active.answer) : "hidden"}">
       ${answerDetailHtml({ answer: `${active.answer + 1}. ${active.choices[active.answer]}`, why: active.why, prompt: active.prompt, reasoning: active.reasoning })}
     </div>
@@ -1100,7 +1173,7 @@ function renderSingleChoice(section) {
           prompt: active.prompt,
           answer: active.choices[active.answer],
           why: active.why
-        }, !isCorrect);
+        }, !isCorrect, bank, section.title);
       }
     }),
     makeButton(getBookmarkLabel(section.id, activeIndex), () => {
@@ -1411,6 +1484,14 @@ function renderBookmarks(section) {
         renderSection();
       });
     });
+    controls.append(
+      makeButton("Study Missed →", () => {
+        missedQuizState.active = true;
+        missedQuizState.position = 0;
+        missedQuizState.revealed = false;
+        renderMissedQuiz();
+      })
+    );
   }
   controls.append(
     makeButton("Clear Bookmarks", () => {
@@ -1419,6 +1500,59 @@ function renderBookmarks(section) {
       renderSection();
     }, "secondary")
   );
+}
+
+function renderMissedQuiz() {
+  if (!bookmarks.length) {
+    missedQuizState.active = false;
+    renderSection();
+    return;
+  }
+  missedQuizState.position = Math.min(missedQuizState.position, bookmarks.length - 1);
+  const item = bookmarks[missedQuizState.position];
+  content.innerHTML = "";
+  const div = document.createElement("div");
+  div.className = "activity-panel";
+  div.innerHTML = `
+    <div class="activity-body">
+      <div class="prompt-card">
+        <p class="eyebrow">Study Missed · ${missedQuizState.position + 1} of ${bookmarks.length}</p>
+        <p class="eyebrow">${escapeHtml(item.section)}</p>
+        <p class="large-prompt">${escapeHtml(item.prompt)}</p>
+      </div>
+      <div class="feedback ${missedQuizState.revealed ? "correct" : "hidden"}">
+        <div class="answer-detail">
+          <p class="answer-line"><strong>Correct answer:</strong> ${escapeHtml(item.answer)}</p>
+          ${item.why ? `<p><strong>Why:</strong> ${escapeHtml(item.why)}</p>` : ""}
+        </div>
+      </div>
+    </div>
+    <div class="control-row"></div>
+  `;
+  content.appendChild(div);
+  const controls = div.querySelector(".control-row");
+  if (!missedQuizState.revealed) {
+    controls.appendChild(makeButton("Reveal Answer", () => {
+      missedQuizState.revealed = true;
+      renderMissedQuiz();
+    }));
+  }
+  controls.appendChild(makeButton("← Previous", () => {
+    missedQuizState.position = Math.max(0, missedQuizState.position - 1);
+    missedQuizState.revealed = false;
+    renderMissedQuiz();
+  }, "secondary"));
+  controls.appendChild(makeButton("Next →", () => {
+    missedQuizState.position = Math.min(bookmarks.length - 1, missedQuizState.position + 1);
+    missedQuizState.revealed = false;
+    renderMissedQuiz();
+  }, "secondary"));
+  controls.appendChild(makeButton("Exit Study Missed", () => {
+    missedQuizState.active = false;
+    missedQuizState.position = 0;
+    missedQuizState.revealed = false;
+    renderSection();
+  }, "secondary"));
 }
 
 function setAppMode(mode) {
