@@ -81,85 +81,99 @@ const sections = [
         q: "Which device uses MAC addresses to send data to the right port?",
         choices: ["Hub", "Switch", "Router", "Firewall"],
         answer: 1,
-        why: "Switches learn MAC addresses and forward frames to the right port."
+        why: "Switches learn MAC addresses and forward frames to the right port.",
+        reasoning: "Eliminate by function: hubs broadcast to every port, routers use IP addresses, firewalls filter traffic. Only switches build a MAC table and forward frames to the correct port."
       },
       {
         q: "What is the brain of the computer's network connection?",
         choices: ["CPU", "NIC", "RAM", "SSD"],
         answer: 1,
-        why: "The NIC is the network interface card."
+        why: "The NIC is the network interface card.",
+        reasoning: "The CPU processes, RAM stores, SSD holds data — but the NIC is the physical component that puts the machine on the network."
       },
       {
         q: "Which command shows your IP on a Mac or Linux machine?",
         choices: ["ipconfig", "ifconfig", "netstat", "ping"],
         answer: 1,
-        why: "ifconfig is the classic Mac/Linux answer for this certification-style question."
+        why: "ifconfig is the classic Mac/Linux answer for this certification-style question.",
+        reasoning: "ipconfig is Windows-only. On Mac and Linux the classic command is ifconfig. Modern Linux also accepts ip addr, but cert questions almost always expect ifconfig."
       },
       {
         q: "If a student's IP starts with 169.254.x.x, what is the problem?",
         choices: ["Internet is fast", "DHCP failed (APIPA)", "Virus", "Wrong cable"],
         answer: 1,
-        why: "169.254 means the device self-assigned an APIPA address after DHCP failed."
+        why: "169.254 means the device self-assigned an APIPA address after DHCP failed.",
+        reasoning: "When a Windows client gives up waiting for DHCP, it auto-assigns a 169.254 address. That address only reaches other APIPA hosts — nothing else. Troubleshoot DHCP before the website."
       },
       {
         q: "What layer of the OSI model is the Physical layer?",
         choices: ["Layer 1", "Layer 3", "Layer 7", "Layer 4"],
         answer: 0,
-        why: "Physical cabling, ports, and signals are Layer 1."
+        why: "Physical cabling, ports, and signals are Layer 1.",
+        reasoning: "Memorize bottom-up: 1=Physical, 2=Data Link (MAC), 3=Network (IP), 4=Transport (TCP/UDP), 5-7=Session/Presentation/Application."
       },
       {
         q: "Which protocol automatically assigns IP settings?",
         choices: ["DNS", "DHCP", "HTTP", "SSH"],
         answer: 1,
-        why: "DHCP leases IP addresses and other network settings."
+        why: "DHCP leases IP addresses and other network settings.",
+        reasoning: "DNS resolves names, HTTP carries web pages, SSH is for remote login. DHCP is the only one that automatically hands out IP address, mask, gateway, and DNS server to clients."
       },
       {
         q: "Which protocol resolves names like example.com to IP addresses?",
         choices: ["DNS", "ARP", "NTP", "FTP"],
         answer: 0,
-        why: "DNS translates hostnames into IP addresses."
+        why: "DNS translates hostnames into IP addresses.",
+        reasoning: "ARP maps IP to MAC, NTP syncs clocks, FTP moves files. DNS is the directory service: you give it a name, it returns an IP address."
       },
       {
         q: "Which command tests whether another host responds?",
         choices: ["ping", "format", "mkdir", "copy"],
         answer: 0,
-        why: "ping sends echo requests to test reachability and latency."
+        why: "ping sends echo requests to test reachability and latency.",
+        reasoning: "format, mkdir, and copy are file system commands. ping is the network reachability tool — it sends ICMP echo requests and reports round-trip time or timeout."
       },
       {
         q: "Which address is the loopback address?",
         choices: ["192.168.1.1", "8.8.8.8", "127.0.0.1", "169.254.1.1"],
         answer: 2,
-        why: "127.0.0.1 tests the local TCP/IP stack."
+        why: "127.0.0.1 tests the local TCP/IP stack.",
+        reasoning: "192.168.1.1 is a common gateway, 8.8.8.8 is Google DNS, 169.254.x.x is APIPA. The entire 127.x.x.x block is loopback — pinging it tests the machine's own network stack."
       },
       {
         q: "What is the standard port for HTTPS?",
         choices: ["21", "53", "80", "443"],
         answer: 3,
-        why: "HTTPS commonly uses TCP port 443."
+        why: "HTTPS commonly uses TCP port 443.",
+        reasoning: "Memorize the big four: HTTP=80, HTTPS=443, DNS=53, SSH=22. Cert questions test these constantly — know them without thinking."
       },
       {
         q: "Which device connects different IP networks?",
         choices: ["Switch", "Router", "Patch panel", "Hub"],
         answer: 1,
-        why: "Routers move traffic between networks."
+        why: "Routers move traffic between networks.",
+        reasoning: "Switches connect hosts on the same network by MAC address. Routers connect different IP networks by routing between subnets. Patch panels and hubs don't make routing decisions."
       },
       {
         q: "Which address type does ARP help discover?",
         choices: ["MAC", "DNS", "URL", "SSID"],
         answer: 0,
-        why: "ARP maps an IP address to a MAC address on the local network."
+        why: "ARP maps an IP address to a MAC address on the local network.",
+        reasoning: "ARP = Address Resolution Protocol. You give it a known IP, it broadcasts on the local segment and receives back the MAC address of the device that owns that IP."
       },
       {
         q: "What does VLAN stand for?",
         choices: ["Virtual Local Area Network", "Verified LAN Access Node", "Variable Link Address Name", "Virtual Login Access Number"],
         answer: 0,
-        why: "A VLAN creates a logical network segment."
+        why: "A VLAN creates a logical network segment.",
+        reasoning: "Break it apart: Virtual = software-defined, Local Area Network = LAN. A VLAN segments one physical switch into multiple logical networks, separating broadcast domains."
       },
       {
         q: "Which command shows detailed Windows network settings, including MAC address?",
         choices: ["ipconfig /all", "ping /all", "show all", "net use"],
         answer: 0,
-        why: "ipconfig /all shows adapter details including physical address."
+        why: "ipconfig /all shows adapter details including physical address.",
+        reasoning: "ipconfig alone shows IP, mask, and gateway. The /all switch adds the physical (MAC) address, DHCP status, lease dates, DNS servers, and adapter description."
       }
     ]
   },
@@ -180,67 +194,78 @@ const sections = [
           "Check the Switch: show vlan"
         ],
         answer: 2,
-        why: "Always start with your own machine. If you do not have an IP, router checks are premature."
+        why: "Always start with your own machine. If you do not have an IP, router checks are premature.",
+        reasoning: "Bottom-up troubleshooting: start local. ipconfig reveals whether you even have an IP. If you see 169.254 or blank, the problem is on your device — there is nothing to gain from pinging a router yet."
       },
       {
         prompt: "A website loads, but it takes 20 seconds. Which command helps identify where the path slows down?",
         choices: ["ipconfig", "tracert 8.8.8.8", "hostname", "arp -a"],
         answer: 1,
-        why: "tracert shows each hop on the route, which helps locate the slow segment."
+        why: "tracert shows each hop on the route, which helps locate the slow segment.",
+        reasoning: "tracert sends probes with incrementing TTL values, forcing each router to respond. The hop where latency spikes is the slow segment — that directs where to investigate next."
       },
       {
         prompt: "You need to confirm whether the default gateway responds before testing the Internet.",
         choices: ["ping 192.168.1.1", "nslookup example.com", "netstat -ano", "show vlan"],
         answer: 0,
-        why: "Pinging the gateway confirms whether the local network path to the router works."
+        why: "Pinging the gateway confirms whether the local network path to the router works.",
+        reasoning: "The gateway is the last hop you own. If ping 192.168.1.1 fails, the problem is between your machine and the router — no point testing the Internet until local connectivity is confirmed."
       },
       {
         prompt: "The user can ping 8.8.8.8 but cannot open example.com by name. What command should you try next?",
         choices: ["ipconfig /release", "nslookup example.com", "tracert 127.0.0.1", "show ip route"],
         answer: 1,
-        why: "If IP works but names fail, test DNS resolution with nslookup."
+        why: "If IP works but names fail, test DNS resolution with nslookup.",
+        reasoning: "Pinging an IP proves the data path works. The failure is in name-to-IP translation. nslookup queries DNS directly and shows exactly what the server returns — or if it times out."
       },
       {
         prompt: "A Windows PC has a 169.254.x.x address. Which command asks DHCP for a new address?",
         choices: ["ipconfig /renew", "ping 127.0.0.1", "tracert 8.8.8.8", "netstat"],
         answer: 0,
-        why: "ipconfig /renew requests a new lease from DHCP."
+        why: "ipconfig /renew requests a new lease from DHCP.",
+        reasoning: "169.254 = APIPA = DHCP failed. ipconfig /renew sends a fresh DHCP discovery broadcast. If DHCP responds, the machine gets a real address. If not, troubleshoot DHCP or the cable."
       },
       {
         prompt: "You want to see the MAC address, DNS servers, and DHCP status on Windows.",
         choices: ["ipconfig /all", "ping -t", "tracert", "hostname"],
         answer: 0,
-        why: "ipconfig /all shows detailed adapter configuration."
+        why: "ipconfig /all shows detailed adapter configuration.",
+        reasoning: "Basic ipconfig only shows IP, mask, and gateway. The /all flag adds physical (MAC) address, DHCP enabled/disabled, lease dates, and configured DNS servers for every adapter."
       },
       {
         prompt: "You suspect a hostname is resolving to the wrong IP address.",
         choices: ["nslookup example.com", "ping 127.0.0.1", "ipconfig /release", "net use"],
         answer: 0,
-        why: "nslookup checks DNS answers for a name."
+        why: "nslookup checks DNS answers for a name.",
+        reasoning: "nslookup bypasses the local hosts file and cache, querying the DNS server directly. It shows exactly which IP the server returns for that name — useful for spotting stale or wrong records."
       },
       {
         prompt: "You need to confirm your local TCP/IP stack works before testing the network.",
         choices: ["ping 127.0.0.1", "tracert 8.8.8.8", "show vlan", "nslookup"],
         answer: 0,
-        why: "Pinging loopback tests the local network stack."
+        why: "Pinging loopback tests the local network stack.",
+        reasoning: "127.0.0.1 never leaves the machine. If ping 127.0.0.1 fails, the TCP/IP stack itself is broken — reinstall or reset it. If it succeeds, the stack is fine and the problem is external."
       },
       {
         prompt: "A user says the network is slow. You want a quick latency check to the gateway.",
         choices: ["ping 192.168.1.1", "ipconfig /all", "format", "show version"],
         answer: 0,
-        why: "ping gives a fast reachability and latency test."
+        why: "ping gives a fast reachability and latency test.",
+        reasoning: "ping 192.168.1.1 reports round-trip time in milliseconds. Normal LAN latency is under 5ms. High ms or dropped packets to the gateway points to a local network or router issue."
       },
       {
         prompt: "You want to see active connections and listening ports on a Windows machine.",
         choices: ["netstat -ano", "ipconfig /renew", "tracert", "nslookup"],
         answer: 0,
-        why: "netstat can show active connections and listening ports."
+        why: "netstat can show active connections and listening ports.",
+        reasoning: "netstat -ano: -a shows all connections and listeners, -n shows raw IPs without DNS lookups, -o shows the process ID (PID) holding each socket. Use Task Manager to match PIDs to programs."
       },
       {
         prompt: "A switch troubleshooting question asks which VLAN a port belongs to.",
         choices: ["show vlan", "ping 8.8.8.8", "ipconfig", "nslookup"],
         answer: 0,
-        why: "show vlan is the switch-side command for VLAN membership."
+        why: "show vlan is the switch-side command for VLAN membership.",
+        reasoning: "show vlan is a Cisco IOS command run on the switch itself, not the PC. It lists every VLAN ID, its name, and the ports assigned to it — essential for confirming port segmentation."
       }
     ]
   },
@@ -343,67 +368,78 @@ const sections = [
           "Change the DNS server"
         ],
         answer: 2,
-        why: "Media Disconnected points to Layer 1. The cable is likely unplugged or broken."
+        why: "Media Disconnected points to Layer 1. The cable is likely unplugged or broken.",
+        reasoning: "Media Disconnected means the NIC sees no signal. That is a Layer 1 symptom — the cable, wall jack, or switch port. Software fixes cannot restore a broken physical link."
       },
       {
         prompt: "A laptop can reach websites by IP address but not by name. Which service is the likely issue?",
         choices: ["DNS", "DHCP", "STP", "NTP"],
         answer: 0,
-        why: "DNS turns names into IP addresses. If IP works but names fail, suspect DNS."
+        why: "DNS turns names into IP addresses. If IP works but names fail, suspect DNS.",
+        reasoning: "Separate the two symptoms: IP routing works (ping by IP succeeds), but name resolution fails. That cleanly isolates the fault to DNS. Test with nslookup to confirm which server is responding."
       },
       {
         prompt: "A PC has IP 192.168.1.25/24 and gateway 192.168.2.1. Local pings work, but Internet access fails.",
         choices: ["Wrong default gateway", "Bad monitor cable", "HTTPS blocked", "MAC address conflict"],
         answer: 0,
-        why: "The gateway must be reachable from the PC's local subnet."
+        why: "The gateway must be reachable from the PC's local subnet.",
+        reasoning: "With a /24 mask, 192.168.1.x and 192.168.2.x are different subnets. The PC cannot reach a gateway on a different subnet. The gateway must be in the 192.168.1.x range."
       },
       {
         prompt: "A switch port is orange right after a cable is plugged in, then turns green after a short wait.",
         choices: ["Normal STP listening/learning", "DHCP server failure", "Wrong DNS suffix", "Bad subnet mask"],
         answer: 0,
-        why: "Spanning Tree can temporarily block while the port transitions."
+        why: "Spanning Tree can temporarily block while the port transitions.",
+        reasoning: "Spanning Tree puts new ports through Listening (15s) and Learning (15s) states before Forwarding. Orange during this transition is expected — it is not a fault. If it stays orange, investigate STP topology."
       },
       {
         prompt: "Only one office cannot connect. All users in that room plug into the same small switch.",
         choices: ["Check that room's switch uplink", "Replace the Internet firewall", "Change every user's password", "Clear browser cache"],
         answer: 0,
-        why: "A shared local failure points to the common device or uplink."
+        why: "A shared local failure points to the common device or uplink.",
+        reasoning: "Scope is the key clue: one office, all users, one shared device. When every user on one switch fails, the common element is that switch or its uplink — not individual PCs."
       },
       {
         prompt: "A user has 169.254.12.9 and no default gateway. Other users are fine.",
         choices: ["Check DHCP or renew the lease", "Replace the website", "Change the monitor", "Disable DNS"],
         answer: 0,
-        why: "APIPA indicates the client did not receive DHCP settings."
+        why: "APIPA indicates the client did not receive DHCP settings.",
+        reasoning: "Since other users are fine, DHCP is running. This one client did not get a lease — check the cable, switch port, and run ipconfig /renew. If it still fails, check for a DHCP reservation conflict."
       },
       {
         prompt: "A desktop can ping the gateway but cannot ping 8.8.8.8. Other departments can use the Internet.",
         choices: ["Check routing/firewall beyond the gateway", "Replace the keyboard", "Ignore the gateway", "Change HTTP to HTTPS"],
         answer: 0,
-        why: "The local path works, so investigate the next hop, route, or policy."
+        why: "The local path works, so investigate the next hop, route, or policy.",
+        reasoning: "Gateway responds = local network is fine. Failure beyond the gateway, only for this department, suggests a routing policy or ACL blocking traffic from this subnet specifically."
       },
       {
         prompt: "A user can browse websites but cannot open a shared folder by server name. The server works by IP address.",
         choices: ["Name resolution issue", "Bad Ethernet cable", "Dead power supply", "Wrong screen resolution"],
         answer: 0,
-        why: "Access by IP but not by name points to DNS or name resolution."
+        why: "Access by IP but not by name points to DNS or name resolution.",
+        reasoning: "The data path is fine — IP access works. The failure is purely in translating the server name to an IP. Check DNS records, the local hosts file, or whether the machine is looking at the right DNS server."
       },
       {
         prompt: "Everyone on VLAN 20 can print. Everyone on VLAN 30 cannot print to the same printer.",
         choices: ["Check inter-VLAN routing or ACLs", "Replace the printer toner", "Restart every laptop", "Change HTTPS port"],
         answer: 0,
-        why: "A VLAN-specific failure points to routing, ACL, or subnet policy."
+        why: "A VLAN-specific failure points to routing, ACL, or subnet policy.",
+        reasoning: "Same printer, different result by VLAN. The packet is crossing a VLAN boundary. Check whether inter-VLAN routing is enabled and whether an ACL is blocking traffic from VLAN 30."
       },
       {
         prompt: "A switch shows a port as administratively down.",
         choices: ["Enable the port with no shutdown", "Replace DNS", "Renew DHCP on the server", "Change the subnet mask first"],
         answer: 0,
-        why: "Administratively down means the port was manually disabled."
+        why: "Administratively down means the port was manually disabled.",
+        reasoning: "Administratively down is a deliberate software state — someone ran shutdown on that interface in config mode. The physical cable and hardware are fine. Fix it with no shutdown."
       },
       {
         prompt: "A user reports intermittent drops only when moving the laptop around.",
         choices: ["Inspect cable or Wi-Fi signal quality", "Change the website URL", "Disable the default gateway", "Clear ARP on every router"],
         answer: 0,
-        why: "Movement-related drops point to physical connection or wireless signal."
+        why: "Movement-related drops point to physical connection or wireless signal.",
+        reasoning: "Movement triggering the drops is the key clue. It points to a bent or loose cable, a damaged connector, or a weak Wi-Fi signal that drops when the laptop shifts position."
       }
     ]
   },
@@ -689,7 +725,7 @@ function renderFixFail(section) {
       }).join("")}
     </div>
     <div class="feedback ${local.revealed ? getResultClass(local.selected, item.answer) : "hidden"}">
-      ${answerDetailHtml({ answer: item.answer, why: item.why, prompt: item.prompt })}
+      ${answerDetailHtml({ answer: item.answer, why: item.why, prompt: item.prompt, reasoning: item.reasoning })}
     </div>
   `;
   body.querySelectorAll("[data-answer]").forEach((button) => {
@@ -768,7 +804,7 @@ function renderRapidQuiz(section) {
       }).join("")}
     </div>
     <div class="feedback ${local.revealed ? getResultClass(local.selected, q.answer) : "hidden"}">
-      ${answerDetailHtml({ answer: letters[q.answer] + ". " + q.choices[q.answer], why: q.why, prompt: q.q })}
+      ${answerDetailHtml({ answer: letters[q.answer] + ". " + q.choices[q.answer], why: q.why, prompt: q.q, reasoning: q.reasoning })}
     </div>
   `;
   body.querySelectorAll("[data-choice]").forEach((button) => {
@@ -842,7 +878,7 @@ function renderSingleChoice(section) {
       }).join("")}
     </div>
     <div class="feedback ${local.revealed ? getResultClass(local.selected, active.answer) : "hidden"}">
-      ${answerDetailHtml({ answer: `${active.answer + 1}. ${active.choices[active.answer]}`, why: active.why, prompt: active.prompt })}
+      ${answerDetailHtml({ answer: `${active.answer + 1}. ${active.choices[active.answer]}`, why: active.why, prompt: active.prompt, reasoning: active.reasoning })}
     </div>
   `;
   body.querySelectorAll("[data-choice]").forEach((button) => {
@@ -934,7 +970,7 @@ function renderEscape(section) {
     makeButton("Reveal Lock Answer", () => {
       const feedback = body.querySelector("#escape-feedback");
       feedback.className = "feedback correct";
-      feedback.innerHTML = answerDetailHtml({ answer: lock.answers[0], why: lock.success, prompt: lock.prompt });
+      feedback.innerHTML = answerDetailHtml({ answer: lock.answers[0], why: lock.success, prompt: lock.prompt, reasoning: lock.reasoning });
     }),
     makeButton(getBookmarkLabel("escape", activeIndex), () => {
       toggleBookmark({
@@ -1196,12 +1232,12 @@ function getResultClass(selected, answer) {
   return "wrong";
 }
 
-function answerDetailHtml({ answer, why, prompt }) {
+function answerDetailHtml({ answer, why, prompt, reasoning }) {
   return `
     <div class="answer-detail">
       <p class="answer-line"><strong>Correct answer:</strong> ${escapeHtml(answer)}</p>
       <p><strong>Why:</strong> ${escapeHtml(why)}</p>
-      <p class="rule-line"><strong>How to reason it out:</strong> ${escapeHtml(getReasoningRule(prompt, why))}</p>
+      <p class="rule-line"><strong>How to reason it out:</strong> ${escapeHtml(reasoning || getReasoningRule(prompt, why))}</p>
     </div>
   `;
 }
