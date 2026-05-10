@@ -617,6 +617,50 @@ kbd {
   color: var(--c-green, #52c07a) !important;
 }
 
+/* Simulation score screen */
+.sim-breakdown {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sim-cat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  font-size: 0.88rem;
+}
+
+.sim-cat-name {
+  color: var(--c-text);
+}
+
+.sim-cat-score {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+/* Simulation countdown timer in eyebrow */
+.sim-timer {
+  font-weight: 600;
+  color: var(--c-muted);
+}
+
+.sim-timer.urgent {
+  color: #e05252;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+}
+
 @media (max-width: 860px) {
   .header-inner,
   .layout,

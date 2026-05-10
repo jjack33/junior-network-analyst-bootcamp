@@ -785,6 +785,14 @@ const sections = [
     ]
   },
   {
+    id: "simulation",
+    time: "Full Exam",
+    title: "CompTIA Simulation",
+    type: "simulation",
+    intro: "90 questions, 90 minutes. Single sitting, forward-only, no hints. Scaled score at the end.",
+    instructor: "Use this as a timed practice exam before certification day. Score is displayed as /900 (720 = passing)."
+  },
+  {
     id: "bookmarks",
     time: "Review later",
     title: "Bookmarked Review",
@@ -810,10 +818,12 @@ const state = {
   final: { revealed: false, page: 0, order: [] },
   ports: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
   subnetting: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
-  osi: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} }
+  osi: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
+  simulation: { questions: null, position: 0, answers: {}, done: false, endTime: null }
 };
 let bookmarks = loadBookmarks();
 let comptiaTimerId = null;
+let simTimerId = null;
 let missedQuizState = { active: false, position: 0, revealed: false };
 
 function comptiaAdvance(local, bankLength, bookmarkItem, isWrong, bank, sectionTitle) {
@@ -970,7 +980,7 @@ function init() {
       if (key === "F") { e.preventDefault(); body.querySelector('[data-answer="FIX"]')?.click(); }
       else if (key === "X") { e.preventDefault(); body.querySelector('[data-answer="FAIL"]')?.click(); }
       else if (key === "ENTER") { e.preventDefault(); content.querySelector(".control-row button")?.click(); }
-    } else if (section.type === "rapidQuiz" || section.type === "singleChoice" || section.type === "finalQuiz") {
+    } else if (section.type === "rapidQuiz" || section.type === "singleChoice" || section.type === "finalQuiz" || section.type === "simulation") {
       const idx = ["A", "B", "C", "D"].indexOf(key);
       if (idx !== -1) { e.preventDefault(); body.querySelector(`[data-choice="${idx}"]`)?.click(); }
       else if (key === "ENTER") { e.preventDefault(); content.querySelector(".control-row button")?.click(); }
@@ -1011,6 +1021,7 @@ function renderSection() {
   if (section.type === "matching") renderMatching(section);
   if (section.type === "mistakes") renderMistakes(section);
   if (section.type === "finalQuiz") renderFinalQuiz(section);
+  if (section.type === "simulation") renderSimulation(section);
   if (section.type === "bookmarks") {
     if (missedQuizState.active && bookmarks.length) { renderMissedQuiz(); return; }
     renderBookmarks(section);
@@ -1894,6 +1905,179 @@ function escapeHtml(value) {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function collectSimQuestions() {
+  const pool = [];
+  sections.forEach((section) => {
+    if (!section.banks) return;
+    if (section.type === "rapidQuiz") {
+      section.banks.forEach((bank) => {
+        bank.questions.forEach((q) => {
+          pool.push({ sectionTitle: section.title, prompt: q.q, choices: q.choices, answer: q.answer, why: q.why, difficulty: q.difficulty || "medium" });
+        });
+      });
+    } else if (section.type === "singleChoice") {
+      section.banks.forEach((bank) => {
+        bank.questions.forEach((q) => {
+          pool.push({ sectionTitle: section.title, prompt: q.prompt, choices: q.choices, answer: q.answer, why: q.why, difficulty: q.difficulty || "medium" });
+        });
+      });
+    }
+  });
+  return pool;
+}
+
+function startSimTimer() {
+  if (simTimerId) clearInterval(simTimerId);
+  simTimerId = setInterval(() => {
+    const local = state.simulation;
+    if (!local.endTime) return;
+    const timeLeft = Math.max(0, Math.floor((local.endTime - Date.now()) / 1000));
+    if (timeLeft <= 0) {
+      local.done = true;
+      stopSimTimer();
+      renderSection();
+      return;
+    }
+    const timerEl = content.querySelector(".sim-timer");
+    if (timerEl) {
+      const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
+      const secs = String(timeLeft % 60).padStart(2, "0");
+      timerEl.textContent = `⏱ ${mins}:${secs}`;
+      timerEl.className = timeLeft < 300 ? "sim-timer urgent" : "sim-timer";
+    }
+  }, 1000);
+}
+
+function stopSimTimer() {
+  if (simTimerId) { clearInterval(simTimerId); simTimerId = null; }
+}
+
+function renderSimulation(section) {
+  const view = panel(section);
+  const body = view.querySelector(".activity-body");
+  const controls = view.querySelector(".control-row");
+  const local = state.simulation;
+  const letters = ["A", "B", "C", "D"];
+
+  // Start screen
+  if (!local.questions) {
+    const pool = collectSimQuestions();
+    body.innerHTML = `
+      <div class="prompt-card">
+        <p class="eyebrow">CompTIA Network+ Style Practice Exam</p>
+        <p class="large-prompt">Ready to begin?</p>
+        <p class="lead">${pool.length} questions · 90 minutes · Forward-only · No hints during exam</p>
+        <p class="lead">Final score is shown as a <strong>scaled score out of 900</strong> — 720 is passing on the real CompTIA exam.</p>
+      </div>
+    `;
+    controls.appendChild(makeButton("Begin Exam →", () => {
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      local.questions = shuffled.slice(0, Math.min(90, shuffled.length));
+      local.position = 0;
+      local.answers = {};
+      local.done = false;
+      local.endTime = Date.now() + 90 * 60 * 1000;
+      startSimTimer();
+      renderSection();
+    }));
+    controls.appendChild(makeButton("Reset", () => {
+      stopSimTimer();
+      local.questions = null;
+      local.position = 0;
+      local.answers = {};
+      local.done = false;
+      local.endTime = null;
+      renderSection();
+    }, "secondary"));
+    return;
+  }
+
+  // Done / time-up screen
+  if (local.done || local.position >= local.questions.length) {
+    stopSimTimer();
+    local.done = true;
+    const correct = Object.values(local.answers).filter((a) => a.correct).length;
+    const total = local.questions.length;
+    const pct = total ? Math.round((correct / total) * 100) : 0;
+    const scaled = Math.round(100 + (correct / total) * 800);
+    const pass = scaled >= 720;
+    const cats = {};
+    local.questions.forEach((q, i) => {
+      if (!cats[q.sectionTitle]) cats[q.sectionTitle] = { correct: 0, total: 0 };
+      cats[q.sectionTitle].total++;
+      if (local.answers[i] && local.answers[i].correct) cats[q.sectionTitle].correct++;
+    });
+    body.innerHTML = `
+      <div class="prompt-card">
+        <p class="eyebrow">Exam Complete</p>
+        <p class="large-prompt">${pass ? "✅ Pass" : "❌ Not Yet Passing"}</p>
+        <p class="lead">Scaled Score: <strong class="${pass ? "score-correct" : "score-wrong"}">${scaled} / 900</strong></p>
+        <p class="lead">Raw: ${correct} / ${total} correct (${pct}%)</p>
+      </div>
+      <div class="sim-breakdown">
+        <p class="eyebrow">Score by category:</p>
+        ${Object.entries(cats).map(([title, cat]) => {
+          const catPct = Math.round((cat.correct / cat.total) * 100);
+          return `<div class="sim-cat-row">
+            <span class="sim-cat-name">${escapeHtml(title)}</span>
+            <span class="sim-cat-score ${catPct >= 70 ? "score-correct" : "score-wrong"}">${cat.correct}/${cat.total} (${catPct}%)</span>
+          </div>`;
+        }).join("")}
+      </div>
+    `;
+    controls.appendChild(makeButton("Reset & Try Again", () => {
+      stopSimTimer();
+      local.questions = null;
+      local.position = 0;
+      local.answers = {};
+      local.done = false;
+      local.endTime = null;
+      renderSection();
+    }, "secondary"));
+    return;
+  }
+
+  // Question screen
+  const q = local.questions[local.position];
+  const saved = local.answers[local.position];
+  const timeLeft = local.endTime ? Math.max(0, Math.floor((local.endTime - Date.now()) / 1000)) : 0;
+  const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
+  const secs = String(timeLeft % 60).padStart(2, "0");
+  body.innerHTML = `
+    <div class="prompt-card">
+      <p class="eyebrow">Question ${local.position + 1} of ${local.questions.length} · ${escapeHtml(q.sectionTitle)} · <span class="${timeLeft < 300 ? "sim-timer urgent" : "sim-timer"}">⏱ ${mins}:${secs}</span></p>
+      <p class="large-prompt">${escapeHtml(q.prompt)}</p>
+    </div>
+    <div class="grid">
+      ${q.choices.map((choice, index) => {
+        const selected = saved && saved.selected === index ? "selected" : "";
+        return `<button class="choice-button ${selected}" data-choice="${index}" type="button">${letters[index]}. ${escapeHtml(choice)}</button>`;
+      }).join("")}
+    </div>
+    <p class="keyboard-hint"><kbd>A</kbd> <kbd>B</kbd> <kbd>C</kbd> <kbd>D</kbd> to select · <kbd>Enter</kbd> to submit</p>
+  `;
+  body.querySelectorAll("[data-choice]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (saved) return;
+      local.answers[local.position] = { selected: Number(button.dataset.choice), correct: Number(button.dataset.choice) === q.answer };
+      renderSection();
+    });
+  });
+  controls.appendChild(makeButton("Submit & Next →", () => {
+    if (!local.answers[local.position]) {
+      showTemporaryFeedback(body, "Select an answer before proceeding.");
+      return;
+    }
+    local.position++;
+    if (local.position >= local.questions.length) local.done = true;
+    renderSection();
+  }));
+  controls.appendChild(makeButton("End Exam Early", () => {
+    local.done = true;
+    renderSection();
+  }, "secondary"));
 }
 
 init();
