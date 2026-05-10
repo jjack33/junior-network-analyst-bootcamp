@@ -556,16 +556,51 @@ let timerSeconds = 0;
 let timerId = null;
 const bookmarkStorageKey = "jna-bootcamp-bookmarks";
 const state = {
-  warmup: { index: 0, selected: null, revealed: false, order: [], position: 0 },
-  sprint: { index: 0, selected: null, revealed: false, order: [], position: 0 },
-  command: { index: 0, selected: null, revealed: false, order: [], position: 0 },
+  warmup: { index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
+  sprint: { index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
+  command: { index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
   escape: { index: 0, complete: false, order: [], position: 0 },
-  detective: { index: 0, selected: null, revealed: false, order: [], position: 0 },
+  detective: { index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
   matching: { revealed: false, selections: {}, order: [], position: 0 },
   mistakes: { revealed: false },
   final: { revealed: false, page: 0, order: [] }
 };
 let bookmarks = loadBookmarks();
+
+function computeExamScore() {
+  let answered = 0, correct = 0;
+  Object.values(state).forEach((local) => {
+    if (!local.answers) return;
+    Object.values(local.answers).forEach((ans) => {
+      if (ans.revealed) {
+        answered++;
+        if (ans.correct) correct++;
+      }
+    });
+  });
+  return { answered, correct };
+}
+
+function renderExamScore() {
+  const el = document.getElementById("exam-score");
+  if (!el) return;
+  if (appMode !== "exam") {
+    el.classList.add("hidden");
+    return;
+  }
+  const { answered, correct } = computeExamScore();
+  const wrong = answered - correct;
+  const pct = answered > 0 ? Math.round((correct / answered) * 100) : null;
+  el.classList.remove("hidden");
+  el.innerHTML = `
+    <span class="timer-label">Exam Score</span>
+    <div class="score-tally">
+      <span class="score-correct">${correct} correct</span>
+      ${answered > 0 ? `<span class="score-sep">·</span><span class="score-wrong">${wrong} wrong</span>` : ""}
+    </div>
+    <p class="score-pct">${answered > 0 ? `${answered} answered · ${pct}%` : "No answers submitted yet."}</p>
+  `;
+}
 
 const nav = document.getElementById("section-nav");
 const title = document.getElementById("section-title");
@@ -606,6 +641,7 @@ function renderSection() {
   content.innerHTML = "";
   renderNav();
   renderModeButtons();
+  renderExamScore();
   document.getElementById("prev-section").disabled = currentSection === 0;
   document.getElementById("next-section").disabled = currentSection === sections.length - 1;
 
@@ -636,6 +672,9 @@ function renderFixFail(section) {
   const local = state.warmup;
   const activeIndex = getActiveRotatingIndex(local, section.items.length);
   const item = section.items[activeIndex];
+  const savedAnswer = local.answers[activeIndex];
+  local.selected = savedAnswer !== undefined ? savedAnswer.selected : null;
+  local.revealed = savedAnswer !== undefined ? savedAnswer.revealed : false;
   body.innerHTML = `
     <div class="prompt-card">
       <p class="eyebrow">Scenario ${local.position + 1} of ${section.items.length}</p>
@@ -657,10 +696,12 @@ function renderFixFail(section) {
     button.addEventListener("click", () => {
       local.selected = button.dataset.answer;
       if (appMode === "exam") {
+        local.answers[activeIndex] = { selected: local.selected, revealed: false, correct: null };
         renderSection();
         return;
       }
       local.revealed = true;
+      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === item.answer };
       renderSection();
     });
   });
@@ -671,6 +712,7 @@ function renderFixFail(section) {
         return;
       }
       local.revealed = true;
+      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === item.answer };
       renderSection();
     }),
     makeButton(getBookmarkLabel("warmup", activeIndex), () => {
@@ -685,20 +727,17 @@ function renderFixFail(section) {
     }, "secondary"),
     makeButton("Previous Scenario", () => {
       retreatRotation(local, section.items.length);
-      local.selected = null;
-      local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Next Scenario", () => {
       advanceRotation(local, section.items.length);
-      local.selected = null;
-      local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Reset", () => {
       resetRotation(local, section.items.length);
       local.selected = null;
       local.revealed = false;
+      local.answers = {};
       renderSection();
     }, "secondary")
   );
@@ -712,6 +751,9 @@ function renderRapidQuiz(section) {
   const activeIndex = getActiveRotatingIndex(local, section.questions.length);
   const q = section.questions[activeIndex];
   const letters = ["A", "B", "C", "D"];
+  const savedAnswer = local.answers[activeIndex];
+  local.selected = savedAnswer !== undefined ? savedAnswer.selected : null;
+  local.revealed = savedAnswer !== undefined ? savedAnswer.revealed : false;
   body.innerHTML = `
     <div class="prompt-card">
       <p class="eyebrow">Question ${local.position + 1} of ${section.questions.length} | A=thumbs up B=heart C=surprised D=clap</p>
@@ -733,6 +775,7 @@ function renderRapidQuiz(section) {
     button.addEventListener("click", () => {
       local.selected = Number(button.dataset.choice);
       local.revealed = appMode === "study";
+      local.answers[activeIndex] = { selected: local.selected, revealed: local.revealed, correct: local.revealed ? local.selected === q.answer : null };
       renderSection();
     });
   });
@@ -743,6 +786,7 @@ function renderRapidQuiz(section) {
         return;
       }
       local.revealed = true;
+      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === q.answer };
       renderSection();
     }),
     makeButton(getBookmarkLabel("sprint", activeIndex), () => {
@@ -757,20 +801,17 @@ function renderRapidQuiz(section) {
     }, "secondary"),
     makeButton("Previous Question", () => {
       retreatRotation(local, section.questions.length);
-      local.selected = null;
-      local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Next Question", () => {
       advanceRotation(local, section.questions.length);
-      local.selected = null;
-      local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Reset", () => {
       resetRotation(local, section.questions.length);
       local.selected = null;
       local.revealed = false;
+      local.answers = {};
       renderSection();
     }, "secondary")
   );
@@ -784,6 +825,9 @@ function renderSingleChoice(section) {
   const questions = section.questions || [section];
   const activeIndex = getActiveRotatingIndex(local, questions.length);
   const active = questions[activeIndex];
+  const savedAnswer = local.answers[activeIndex];
+  local.selected = savedAnswer !== undefined ? savedAnswer.selected : null;
+  local.revealed = savedAnswer !== undefined ? savedAnswer.revealed : false;
   body.innerHTML = `
     <div class="prompt-card">
       <p class="eyebrow">Question ${local.position + 1} of ${questions.length}</p>
@@ -805,6 +849,7 @@ function renderSingleChoice(section) {
     button.addEventListener("click", () => {
       local.selected = Number(button.dataset.choice);
       local.revealed = appMode === "study";
+      local.answers[activeIndex] = { selected: local.selected, revealed: local.revealed, correct: local.revealed ? local.selected === active.answer : null };
       renderSection();
     });
   });
@@ -815,6 +860,7 @@ function renderSingleChoice(section) {
         return;
       }
       local.revealed = true;
+      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === active.answer };
       renderSection();
     }),
     makeButton(getBookmarkLabel(section.id, activeIndex), () => {
@@ -829,20 +875,17 @@ function renderSingleChoice(section) {
     }, "secondary"),
     makeButton("Previous Question", () => {
       retreatRotation(local, questions.length);
-      local.selected = null;
-      local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Next Question", () => {
       advanceRotation(local, questions.length);
-      local.selected = null;
-      local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Reset", () => {
       resetRotation(local, questions.length);
       local.selected = null;
       local.revealed = false;
+      local.answers = {};
       renderSection();
     }, "secondary")
   );
@@ -1134,6 +1177,7 @@ function setAppMode(mode) {
   Object.values(state).forEach((local) => {
     if ("revealed" in local) local.revealed = false;
     if ("selected" in local) local.selected = null;
+    if ("answers" in local) local.answers = {};
   });
   renderSection();
 }
