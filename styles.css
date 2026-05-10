@@ -694,3 +694,133 @@ kbd {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── PBQ shared ───────────────────────────────────────────────────────────── */
+.pbq-scenario {
+  background: #1e2236;
+  border-left: 3px solid #4d6ef5;
+  padding: 14px 16px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+  line-height: 1.6;
+}
+
+.pbq-diag-label {
+  font-weight: 600;
+  margin: 16px 0 8px;
+  color: #a8b4d0;
+}
+
+/* ── PBQ CLI Terminal ─────────────────────────────────────────────────────── */
+.pbq-terminal {
+  background: #0d0f18;
+  border: 1px solid #2e3348;
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  font-size: 0.82rem;
+  color: #b8ffc8;
+  min-height: 140px;
+  max-height: 320px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin-bottom: 10px;
+}
+
+.pbq-terminal-line { margin: 2px 0; }
+.pbq-cmd { color: #7ac8ff; }
+.pbq-out { color: #b8ffc8; }
+
+.pbq-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0d0f18;
+  border: 1px solid #4d6ef5;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+}
+
+.pbq-prompt { color: #7ac8ff; font-family: monospace; }
+
+.pbq-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #e8eaf6;
+  font-family: "Cascadia Code", "Consolas", monospace;
+  font-size: 0.88rem;
+}
+
+/* ── PBQ Topology ─────────────────────────────────────────────────────────── */
+.pbq-topology {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 20px 0;
+}
+
+.pbq-connector { color: #4a5070; font-size: 1.4rem; align-self: center; }
+
+.pbq-device {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 20px;
+  border: 2px solid #2e3348;
+  border-radius: 10px;
+  background: #1e2236;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  min-width: 90px;
+  position: relative;
+}
+
+.pbq-device:hover { border-color: #4d6ef5; background: #252a42; }
+.pbq-device.selected { border-color: #4d6ef5; background: #252a42; box-shadow: 0 0 0 2px #4d6ef5; }
+.pbq-device.correct { border-color: #4caf50; background: #1a3020; }
+.pbq-device.wrong { border-color: #e74c3c; background: #2d1414; }
+.pbq-device-icon { font-size: 2rem; }
+.pbq-device-label { font-size: 0.78rem; font-weight: 600; text-align: center; }
+.pbq-device-correct-tag { position: absolute; top: 4px; right: 6px; color: #4caf50; font-weight: 700; }
+
+/* ── PBQ Config Form ──────────────────────────────────────────────────────── */
+.pbq-form { margin: 8px 0 16px; }
+
+.pbq-field-row {
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.pbq-field-label { font-weight: 600; font-size: 0.88rem; color: #a8b4d0; }
+
+.pbq-config-input {
+  background: #1e2236;
+  border: 1px solid #2e3348;
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: #e8eaf6;
+  font-family: "Cascadia Code", "Consolas", monospace;
+  font-size: 0.88rem;
+  transition: border-color 0.15s;
+}
+
+.pbq-config-input:focus { outline: none; border-color: #4d6ef5; }
+.pbq-config-input.pbq-correct { border-color: #4caf50; background: #1a3020; }
+.pbq-config-input.pbq-wrong { border-color: #e74c3c; background: #2d1414; }
+
+.pbq-answer-reveal { font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
+
+@media (max-width: 600px) {
+  .pbq-field-row { grid-template-columns: 1fr; }
+  .pbq-topology { flex-direction: column; }
+  .pbq-connector { transform: rotate(90deg); }
+}

@@ -793,6 +793,149 @@ const sections = [
     instructor: "Use this as a timed practice exam before certification day. Score is displayed as /900 (720 = passing)."
   },
   {
+    id: "pbq-cli",
+    time: "PBQ Lab",
+    title: "PBQ: CLI Diagnostics",
+    type: "pbqCli",
+    intro: "Performance-Based Question: use the terminal to run commands, then diagnose the network problem.",
+    instructor: "CompTIA puts PBQs at the start of the real exam. Students explore freely then submit a diagnosis.",
+    banks: [
+      {
+        label: "Scenario 1",
+        scenario: "A user calls the help desk: 'I can't access the internet or any shared drives. My computer says it's connected.' Investigate using the terminal below.",
+        hint: "Try: ipconfig, ping 127.0.0.1, ping 8.8.8.8, ping 192.168.1.1, nslookup google.com",
+        commands: {
+          "ipconfig": "Windows IP Configuration\n\nEthernet adapter Local Area Connection:\n   Connection-specific DNS Suffix: corp.local\n   IPv4 Address. . . . . . . . . : 169.254.45.12\n   Subnet Mask . . . . . . . . . : 255.255.0.0\n   Default Gateway . . . . . . . : (blank)",
+          "ipconfig /all": "Windows IP Configuration\n\n   Host Name . . . . . . . . . . : DESKTOP-USER01\n   Primary Dns Suffix  . . . . . : corp.local\n   DHCP Enabled. . . . . . . . . : Yes\n   Autoconfiguration Enabled . . : Yes\n\nEthernet adapter Local Area Connection:\n   DHCP Server . . . . . . . . . : (unreachable)\n   IPv4 Address. . . . . . . . . : 169.254.45.12\n   Subnet Mask . . . . . . . . . : 255.255.0.0\n   Default Gateway . . . . . . . : (blank)",
+          "ping 127.0.0.1": "Pinging 127.0.0.1 with 32 bytes of data:\nReply from 127.0.0.1: bytes=32 time<1ms TTL=128\nReply from 127.0.0.1: bytes=32 time<1ms TTL=128\n\nPing statistics for 127.0.0.1:\n    Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)",
+          "ping 8.8.8.8": "Pinging 8.8.8.8 with 32 bytes of data:\nRequest timed out.\nRequest timed out.\n\nPing statistics for 8.8.8.8:\n    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)",
+          "ping 192.168.1.1": "Pinging 192.168.1.1 with 32 bytes of data:\nRequest timed out.\nRequest timed out.\n\nPing statistics for 192.168.1.1:\n    Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)",
+          "nslookup google.com": "DNS request timed out.\n    timeout was 2 seconds.\nServer:  Unknown\nAddress:  Unknown\n\nDNS request timed out.\n    timeout was 2 seconds.\n*** Request to UnKnown timed-out",
+          "nslookup": "DNS request timed out.\n    timeout was 2 seconds.\nServer:  Unknown\nAddress:  Unknown",
+          "netstat": "Active Connections\n\n  Proto  Local Address       Foreign Address     State\n  TCP    127.0.0.1:49152     127.0.0.1:49153     ESTABLISHED\n\n(No external connections — DHCP likely not obtained)"
+        },
+        choices: [
+          "The DNS server is misconfigured — the PC has an IP but can't resolve names",
+          "The DHCP server is unreachable — the PC self-assigned an APIPA address",
+          "The network cable is unplugged — the PC has no physical link",
+          "The default gateway IP is wrong — the PC can't route to other subnets"
+        ],
+        answer: 1,
+        why: "The 169.254.x.x APIPA address confirms the PC never received a DHCP lease. The loopback ping succeeds (TCP/IP stack is healthy), but all external pings fail. The DHCP server is down, unreachable, or the switch port is misconfigured."
+      },
+      {
+        label: "Scenario 2",
+        scenario: "A developer reports: 'I can load some websites but not others. I can ping servers by IP just fine, but URLs often fail or are slow.' Investigate using the terminal below.",
+        hint: "Try: ipconfig, ping 8.8.8.8, nslookup google.com, nslookup github.com, tracert 8.8.8.8",
+        commands: {
+          "ipconfig": "Windows IP Configuration\n\nEthernet adapter Ethernet:\n   IPv4 Address. . . . . . . . . : 192.168.1.55\n   Subnet Mask . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . : 192.168.1.1",
+          "ipconfig /all": "Windows IP Configuration\n\n   DHCP Enabled. . . . . . . . . : Yes\n   IPv4 Address. . . . . . . . . : 192.168.1.55\n   Subnet Mask . . . . . . . . . : 255.255.255.0\n   Default Gateway . . . . . . . : 192.168.1.1\n   DNS Servers . . . . . . . . . : 192.168.1.200\n                                   (secondary blank)",
+          "ping 8.8.8.8": "Pinging 8.8.8.8 with 32 bytes of data:\nReply from 8.8.8.8: bytes=32 time=14ms TTL=119\nReply from 8.8.8.8: bytes=32 time=13ms TTL=119\n\nPing statistics: Sent = 4, Received = 4, Lost = 0 (0% loss)",
+          "ping 192.168.1.1": "Pinging 192.168.1.1 with 32 bytes of data:\nReply from 192.168.1.1: bytes=32 time<1ms TTL=64\n\nPing statistics: Sent = 4, Received = 4, Lost = 0 (0% loss)",
+          "nslookup google.com": "Server:  UnKnown\nAddress:  192.168.1.200\n\n*** 192.168.1.200 can't find google.com: Server failed",
+          "nslookup github.com": "Server:  UnKnown\nAddress:  192.168.1.200\n\n*** 192.168.1.200 can't find github.com: Server failed",
+          "nslookup google.com 8.8.8.8": "Server:  dns.google\nAddress:  8.8.8.8\n\nNon-authoritative answer:\nName:    google.com\nAddresses: 142.250.80.46",
+          "tracert 8.8.8.8": "Tracing route to dns.google [8.8.8.8]:\n  1    <1ms   192.168.1.1\n  2    12ms   10.0.0.1\n  3    13ms   8.8.8.8\nTrace complete.",
+          "ping google.com": "Ping request could not find host google.com. Please check the name and try again."
+        },
+        choices: [
+          "The default gateway is down — the PC cannot route to external networks",
+          "The internal DNS server (192.168.1.200) is failing — name resolution is broken",
+          "The PC has an APIPA address — DHCP did not assign a valid IP",
+          "A firewall is blocking all outbound traffic on port 80 and 443"
+        ],
+        answer: 1,
+        why: "IP connectivity works (pinging 8.8.8.8 by address succeeds, gateway responds). The internal DNS server 192.168.1.200 returns 'Server failed' for both queries. Using Google DNS (8.8.8.8) directly resolves correctly — confirming the internal DNS server is the problem."
+      }
+    ]
+  },
+  {
+    id: "pbq-topology",
+    time: "PBQ Lab",
+    title: "PBQ: Network Topology",
+    type: "pbqTopology",
+    intro: "Performance-Based Question: read the scenario and click the device most likely causing the problem.",
+    instructor: "Topology PBQs test whether students can map symptoms to the correct OSI layer and device.",
+    banks: [
+      {
+        label: "Scenario 1",
+        scenario: "A user can communicate with all other PCs on the same floor but cannot reach any server in the data center or browse the internet. Pinging other local PCs succeeds. Pinging the data center servers and 8.8.8.8 both fail.",
+        topology: [
+          { id: "pc", label: "PC", icon: "💻", desc: "User's workstation — has a valid IP and can ping local peers" },
+          { id: "switch", label: "Floor Switch", icon: "🔀", desc: "Layer 2 switch — all local PCs are connected here" },
+          { id: "router", label: "Router / Core", icon: "🌐", desc: "Layer 3 device — handles routing between subnets and internet access" },
+          { id: "server", label: "Data Center", icon: "🏢", desc: "Remote servers — cannot be reached from the floor" }
+        ],
+        answer: "router",
+        why: "Local PC-to-PC communication works, meaning Layer 1 (cable) and Layer 2 (switch) are functioning. The failure starts when traffic needs to leave the local subnet — exactly what a router does. A misconfigured or down router/gateway is the most likely cause."
+      },
+      {
+        label: "Scenario 2",
+        scenario: "Two PCs on the same switch, same VLAN, same subnet cannot communicate with each other. No other PCs have problems. Both PCs have valid IPs, their NICs show link-up, and you can ping each PC's loopback (127.0.0.1) successfully.",
+        topology: [
+          { id: "pc1", label: "PC 1", icon: "💻", desc: "First PC — valid IP, loopback OK, link light on" },
+          { id: "switch", label: "Switch", icon: "🔀", desc: "Layer 2 switch — all PCs connect here" },
+          { id: "pc2", label: "PC 2", icon: "💻", desc: "Second PC — valid IP, loopback OK, link light on" },
+          { id: "router", label: "Router", icon: "🌐", desc: "Handles routing to other subnets and internet" }
+        ],
+        answer: "switch",
+        why: "Both PCs have working NICs and valid addresses (Layer 1 and 3 appear OK). The problem is specifically between two devices on the same switch and VLAN. STP port state, VLAN misconfiguration, or a bad switch port are Layer 2 problems — the switch is suspect."
+      },
+      {
+        label: "Scenario 3",
+        scenario: "A user can browse HTTP sites (port 80) but HTTPS sites (port 443) all time out. Pinging external IP addresses works. The router and switch show no errors. All other users on the network have the same issue.",
+        topology: [
+          { id: "pc", label: "PC", icon: "💻", desc: "User's workstation — HTTP works, HTTPS fails" },
+          { id: "switch", label: "Switch", icon: "🔀", desc: "Layer 2 switch — no errors reported" },
+          { id: "firewall", label: "Firewall", icon: "🛡️", desc: "Inspects and filters traffic by port and rule" },
+          { id: "router", label: "Router", icon: "🌐", desc: "Routes traffic — external IP pings succeed" }
+        ],
+        answer: "firewall",
+        why: "IP connectivity works and HTTP (port 80) passes — so Layers 1-3 and the router are fine. HTTPS uses port 443, and the problem affects all users. A firewall rule blocking port 443 outbound would explain this precisely. The firewall is the correct answer."
+      }
+    ]
+  },
+  {
+    id: "pbq-config",
+    time: "PBQ Lab",
+    title: "PBQ: IP Configuration",
+    type: "pbqConfig",
+    intro: "Performance-Based Question: read the scenario and fill in the correct network settings.",
+    instructor: "Config PBQs test applied subnetting knowledge. Students must calculate correct values, not just recognize them.",
+    banks: [
+      {
+        label: "Scenario 1",
+        scenario: "Configure a PC for the network 192.168.10.0/24. Assign it the FIRST usable host address. Use the LAST usable host as the gateway. Use Google's primary DNS server.",
+        fields: [
+          { id: "ip", label: "IP Address", answer: "192.168.10.1", hint: "First usable host in 192.168.10.0/24" },
+          { id: "mask", label: "Subnet Mask", answer: "255.255.255.0", hint: "The mask for /24" },
+          { id: "gateway", label: "Default Gateway", answer: "192.168.10.254", hint: "Last usable host in 192.168.10.0/24" },
+          { id: "dns", label: "DNS Server", answer: "8.8.8.8", hint: "Google's primary public DNS" }
+        ],
+        why: "192.168.10.0/24: network=.0, broadcast=.255, first usable=.1, last usable=.254. Google DNS=8.8.8.8."
+      },
+      {
+        label: "Scenario 2",
+        scenario: "Configure a PC in the SECOND /26 subnet carved from 192.168.5.0/24. Assign it the LAST usable host address in that subnet. The gateway is the first usable host of that same subnet. DNS is Cloudflare (1.1.1.1).",
+        fields: [
+          { id: "ip", label: "IP Address", answer: "192.168.5.126", hint: "/26 block size = 64. Second subnet: .64–.127. Last usable = .126" },
+          { id: "mask", label: "Subnet Mask", answer: "255.255.255.192", hint: "The mask for /26 (64 addresses per subnet)" },
+          { id: "gateway", label: "Default Gateway", answer: "192.168.5.65", hint: "First usable host in second /26 subnet (.64 is network)" },
+          { id: "dns", label: "DNS Server", answer: "1.1.1.1", hint: "Cloudflare's primary public DNS" }
+        ],
+        why: "/24→/26 = 4 subnets of 64 addresses. Subnet 2: 192.168.5.64/26 (.64=network, .127=broadcast, .65=first usable, .126=last usable)."
+      }
+    ]
+  },
+  {
+    id: "simulation",
+    time: "Full Exam",
+    title: "CompTIA Simulation",
+    type: "simulation",
+    intro: "90 questions, 90 minutes. Single sitting, forward-only, no hints. Scaled score at the end.",
+    instructor: "Use this as a timed practice exam before certification day. Score is displayed as /900 (720 = passing)."
+  },
+  {
     id: "bookmarks",
     time: "Review later",
     title: "Bookmarked Review",
@@ -803,6 +946,7 @@ const sections = [
 ];
 
 let currentSection = 0;
+const letters = ["A", "B", "C", "D"];
 let appMode = "study";
 let timerSeconds = 0;
 let timerId = null;
@@ -819,7 +963,10 @@ const state = {
   ports: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
   subnetting: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
   osi: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
-  simulation: { questions: null, position: 0, answers: {}, done: false, endTime: null }
+  simulation: { questions: null, position: 0, answers: {}, done: false, endTime: null },
+  "pbq-cli": { bankIndex: 0, history: [], submitted: false, selected: null, revealed: false },
+  "pbq-topology": { bankIndex: 0, selected: null, revealed: false },
+  "pbq-config": { bankIndex: 0, values: {}, submitted: false, revealed: false }
 };
 let bookmarks = loadBookmarks();
 let comptiaTimerId = null;
@@ -1022,6 +1169,9 @@ function renderSection() {
   if (section.type === "mistakes") renderMistakes(section);
   if (section.type === "finalQuiz") renderFinalQuiz(section);
   if (section.type === "simulation") renderSimulation(section);
+  if (section.type === "pbqCli") renderPbqCli(section);
+  if (section.type === "pbqTopology") renderPbqTopology(section);
+  if (section.type === "pbqConfig") renderPbqConfig(section);
   if (section.type === "bookmarks") {
     if (missedQuizState.active && bookmarks.length) { renderMissedQuiz(); return; }
     renderBookmarks(section);
@@ -2078,6 +2228,226 @@ function renderSimulation(section) {
     local.done = true;
     renderSection();
   }, "secondary"));
+}
+
+// ── PBQ: CLI Diagnostics ───────────────────────────────────────────────────
+function renderPbqCli(section) {
+  const local = state[section.id];
+  const bank = section.banks[local.bankIndex];
+  const { p, body, controls } = panel(section);
+  p.innerHTML = `<p class="eyebrow">Performance-Based Question · Lab ${local.bankIndex + 1} of ${section.banks.length}</p>`;
+  body.innerHTML = `
+    <div class="pbq-scenario">${escapeHtml(bank.scenario)}</div>
+    <p class="keyboard-hint">Hint: ${escapeHtml(bank.hint)}</p>
+    <div class="pbq-terminal" id="pbq-terminal-output" aria-live="polite">${
+      local.history.map(h => `<div class="pbq-terminal-line pbq-cmd">&gt; ${escapeHtml(h.cmd)}</div><div class="pbq-terminal-line pbq-out">${escapeHtml(h.out)}</div>`).join("")
+    }</div>
+    <div class="pbq-input-row">
+      <span class="pbq-prompt">&gt;</span>
+      <input class="pbq-input" id="pbq-cmd-input" type="text" placeholder="Type a command and press Enter" autocomplete="off" spellcheck="false" ${local.submitted ? "disabled" : ""}>
+    </div>
+    ${!local.submitted ? `
+      <p class="pbq-diag-label">Diagnosis:</p>
+      <div class="grid" id="pbq-choices">
+        ${bank.choices.map((c, i) => {
+          const sel = local.selected === i ? "selected" : "";
+          return `<button class="choice-button ${sel}" data-choice="${i}" type="button">${letters[i]}. ${escapeHtml(c)}</button>`;
+        }).join("")}
+      </div>
+      <p class="keyboard-hint"><kbd>A</kbd>–<kbd>${letters[bank.choices.length - 1]}</kbd> to select · <kbd>Enter</kbd> to submit</p>
+    ` : `
+      <p class="pbq-diag-label">Diagnosis:</p>
+      <div class="grid">
+        ${bank.choices.map((c, i) => {
+          const isCorrect = i === bank.answer;
+          const wasSelected = i === local.selected;
+          const cls = isCorrect ? "choice-button correct" : wasSelected ? "choice-button wrong" : "choice-button";
+          return `<button class="choice-button ${cls} disabled" disabled type="button">${letters[i]}. ${escapeHtml(c)}</button>`;
+        }).join("")}
+      </div>
+      <div class="why-box"><strong>Explanation:</strong> ${escapeHtml(bank.why)}</div>
+    `}
+  `;
+
+  // Wire terminal input
+  const input = body.querySelector("#pbq-cmd-input");
+  if (input) {
+    input.focus();
+    input.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter") return;
+      const cmd = input.value.trim().toLowerCase();
+      if (!cmd) return;
+      const cmdMap = bank.commands;
+      let out = cmdMap[cmd] || cmdMap[cmd.replace(/\s+/g, " ")] || `'${cmd}' is not recognized as an internal or external command, operable program or batch file.`;
+      local.history.push({ cmd: input.value.trim(), out });
+      input.value = "";
+      renderSection();
+    });
+    input.addEventListener("focus", () => {});
+  }
+
+  // Wire choice selection
+  body.querySelectorAll("[data-choice]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (local.submitted) return;
+      local.selected = Number(btn.dataset.choice);
+      renderSection();
+    });
+  });
+
+  if (!local.submitted) {
+    controls.appendChild(makeButton("Submit Diagnosis", () => {
+      if (local.selected === null) {
+        showTemporaryFeedback(body, "Select a diagnosis before submitting.");
+        return;
+      }
+      local.submitted = true;
+      renderSection();
+    }));
+    if (local.bankIndex > 0) {
+      controls.appendChild(makeButton("← Previous", () => {
+        local.bankIndex--;
+        state[section.id] = { bankIndex: local.bankIndex, history: [], submitted: false, selected: null, revealed: false };
+        renderSection();
+      }, "secondary"));
+    }
+  } else {
+    if (local.bankIndex < section.banks.length - 1) {
+      controls.appendChild(makeButton("Next Scenario →", () => {
+        local.bankIndex++;
+        state[section.id] = { bankIndex: local.bankIndex, history: [], submitted: false, selected: null, revealed: false };
+        renderSection();
+      }));
+    }
+    if (local.bankIndex > 0) {
+      controls.appendChild(makeButton("← Previous", () => {
+        local.bankIndex--;
+        state[section.id] = { bankIndex: local.bankIndex, history: [], submitted: false, selected: null, revealed: false };
+        renderSection();
+      }, "secondary"));
+    }
+  }
+}
+
+// ── PBQ: Network Topology ──────────────────────────────────────────────────
+function renderPbqTopology(section) {
+  const local = state[section.id];
+  const bank = section.banks[local.bankIndex];
+  const { p, body, controls } = panel(section);
+  p.innerHTML = `<p class="eyebrow">Performance-Based Question · Scenario ${local.bankIndex + 1} of ${section.banks.length}</p>`;
+
+  body.innerHTML = `
+    <div class="pbq-scenario">${escapeHtml(bank.scenario)}</div>
+    <p class="pbq-diag-label">Click the device most likely causing the problem:</p>
+    <div class="pbq-topology">
+      ${bank.topology.map(device => {
+        let cls = "pbq-device";
+        if (local.selected === device.id) cls += " selected";
+        if (local.revealed) {
+          cls += device.id === bank.answer ? " correct" : local.selected === device.id ? " wrong" : "";
+        }
+        return `<div class="${cls}" data-device="${device.id}" title="${escapeHtml(device.desc)}" ${local.revealed ? "" : "role=\"button\" tabindex=\"0\""}>
+          <span class="pbq-device-icon">${device.icon}</span>
+          <span class="pbq-device-label">${escapeHtml(device.label)}</span>
+          ${local.revealed && device.id === bank.answer ? '<span class="pbq-device-correct-tag">✓</span>' : ""}
+        </div>`;
+      }).join('<div class="pbq-connector">—</div>')}
+    </div>
+    ${local.revealed ? `<div class="why-box"><strong>Explanation:</strong> ${escapeHtml(bank.why)}</div>` : ""}
+  `;
+
+  if (!local.revealed) {
+    body.querySelectorAll("[data-device]").forEach(el => {
+      el.addEventListener("click", () => {
+        local.selected = el.dataset.device;
+        renderSection();
+      });
+      el.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); local.selected = el.dataset.device; renderSection(); }
+      });
+    });
+    controls.appendChild(makeButton("Submit", () => {
+      if (!local.selected) { showTemporaryFeedback(body, "Click a device first."); return; }
+      local.revealed = true;
+      renderSection();
+    }));
+  } else {
+    if (local.bankIndex < section.banks.length - 1) {
+      controls.appendChild(makeButton("Next Scenario →", () => {
+        local.bankIndex++;
+        state[section.id] = { bankIndex: local.bankIndex, selected: null, revealed: false };
+        renderSection();
+      }));
+    }
+  }
+  if (local.bankIndex > 0) {
+    controls.appendChild(makeButton("← Previous", () => {
+      local.bankIndex--;
+      state[section.id] = { bankIndex: local.bankIndex, selected: null, revealed: false };
+      renderSection();
+    }, "secondary"));
+  }
+}
+
+// ── PBQ: IP Configuration Form ─────────────────────────────────────────────
+function renderPbqConfig(section) {
+  const local = state[section.id];
+  const bank = section.banks[local.bankIndex];
+  const { p, body, controls } = panel(section);
+  p.innerHTML = `<p class="eyebrow">Performance-Based Question · Config ${local.bankIndex + 1} of ${section.banks.length}</p>`;
+
+  body.innerHTML = `
+    <div class="pbq-scenario">${escapeHtml(bank.scenario)}</div>
+    <form class="pbq-form" id="pbq-config-form" autocomplete="off">
+      ${bank.fields.map(field => {
+        const val = local.values[field.id] || "";
+        let inputCls = "pbq-config-input";
+        if (local.submitted) {
+          const correct = val.trim() === field.answer.trim();
+          inputCls += correct ? " pbq-correct" : " pbq-wrong";
+        }
+        return `
+          <div class="pbq-field-row">
+            <label class="pbq-field-label" for="pbq-${field.id}">${escapeHtml(field.label)}</label>
+            <input class="${inputCls}" id="pbq-${field.id}" data-field="${field.id}" type="text"
+              value="${escapeHtml(val)}" ${local.submitted ? "readonly" : ""} placeholder="${escapeHtml(field.hint)}">
+            ${local.submitted ? `<span class="pbq-answer-reveal">${val.trim() === field.answer ? "✓" : `✗ ${escapeHtml(field.answer)}`}</span>` : ""}
+          </div>`;
+      }).join("")}
+    </form>
+    ${local.submitted ? `<div class="why-box"><strong>Explanation:</strong> ${escapeHtml(bank.why)}</div>` : ""}
+  `;
+
+  // Track input changes
+  body.querySelectorAll("[data-field]").forEach(input => {
+    input.addEventListener("input", () => { local.values[input.dataset.field] = input.value; });
+  });
+
+  if (!local.submitted) {
+    controls.appendChild(makeButton("Submit", () => {
+      bank.fields.forEach(f => {
+        const el = body.querySelector(`[data-field="${f.id}"]`);
+        if (el) local.values[f.id] = el.value;
+      });
+      local.submitted = true;
+      renderSection();
+    }));
+  } else {
+    if (local.bankIndex < section.banks.length - 1) {
+      controls.appendChild(makeButton("Next Scenario →", () => {
+        local.bankIndex++;
+        state[section.id] = { bankIndex: local.bankIndex, values: {}, submitted: false, revealed: false };
+        renderSection();
+      }));
+    }
+  }
+  if (local.bankIndex > 0) {
+    controls.appendChild(makeButton("← Previous", () => {
+      local.bankIndex--;
+      state[section.id] = { bankIndex: local.bankIndex, values: {}, submitted: false, revealed: false };
+      renderSection();
+    }, "secondary"));
+  }
 }
 
 init();

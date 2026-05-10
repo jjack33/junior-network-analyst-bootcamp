@@ -6,6 +6,11 @@
   <meta name="description" content="A zero-setup Junior Network Analyst bootcamp classroom tool for instructors and students.">
   <title>Junior Network Analyst: Zero-Setup Bootcamp</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1a1d2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JNA Bootcamp">
 </head>
 <body>
   <header class="app-header">
@@ -65,5 +70,10 @@
   </template>
 
   <script src="app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js');
+    }
+  </script>
 </body>
 </html>
