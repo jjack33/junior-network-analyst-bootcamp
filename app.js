@@ -6,66 +6,136 @@ const sections = [
     type: "fixFail",
     intro: "Show one scenario at a time. Students choose FIX if the setup should work or FAIL if the setup has a problem.",
     instructor: "Have students commit to FIX or FAIL, then reveal the reason and move to the next scenario.",
-    items: [
+    banks: [
       {
-        prompt: "PC IP: 192.168.1.5\nGateway: 10.0.0.1",
-        answer: "FAIL",
-        why: "They are not on the same subnet. The PC and gateway are on different streets."
+        label: "Bank A",
+        items: [
+          {
+            prompt: "PC IP: 192.168.1.5\nGateway: 10.0.0.1",
+            answer: "FAIL",
+            why: "They are not on the same subnet. The PC and gateway are on different streets."
+          },
+          {
+            prompt: "Interface status: Administratively Down",
+            answer: "FAIL",
+            why: "Someone manually turned the port off. The fix is no shutdown."
+          },
+          {
+            prompt: "You ping 127.0.0.1 and get a reply.",
+            answer: "FIX",
+            why: "The loopback reply means the computer's internal network stack is healthy."
+          },
+          {
+            prompt: "A switch has 3 cables plugged in. All lights are solid amber.",
+            answer: "FAIL",
+            why: "This is likely Spanning Tree blocking traffic to prevent a loop."
+          },
+          {
+            prompt: "Subnet mask: 255.255.255.0\nPC A: 192.168.1.10\nPC B: 192.168.1.20",
+            answer: "FIX",
+            why: "Both devices are in the same /24 neighborhood."
+          },
+          {
+            prompt: "PC IP: 192.168.10.22\nMask: 255.255.255.0\nGateway: 192.168.10.1",
+            answer: "FIX",
+            why: "The host and gateway are in the same /24 network."
+          },
+          {
+            prompt: "PC IP: 10.1.4.25\nMask: 255.255.255.0\nGateway: 10.1.5.1",
+            answer: "FAIL",
+            why: "With a /24 mask, 10.1.4.x and 10.1.5.x are different local networks."
+          },
+          {
+            prompt: "Ethernet status: Media Disconnected",
+            answer: "FAIL",
+            why: "The physical link is down. Start with the cable, wall jack, or switch port."
+          },
+          {
+            prompt: "PC can ping 8.8.8.8 but cannot browse to example.com.",
+            answer: "FAIL",
+            why: "IP connectivity works, but name resolution is likely failing."
+          },
+          {
+            prompt: "DHCP enabled: Yes\nIP Address: 169.254.44.8",
+            answer: "FAIL",
+            why: "A 169.254 address usually means DHCP failed and APIPA assigned a fallback address."
+          },
+          {
+            prompt: "Switch port light is green and blinking.",
+            answer: "FIX",
+            why: "A blinking green link light usually means the port is connected and passing traffic."
+          },
+          {
+            prompt: "Default Gateway field is blank on a PC that needs Internet access.",
+            answer: "FAIL",
+            why: "Without a default gateway, the PC cannot leave its local network."
+          }
+        ]
       },
       {
-        prompt: "Interface status: Administratively Down",
-        answer: "FAIL",
-        why: "Someone manually turned the port off. The fix is no shutdown."
-      },
-      {
-        prompt: "You ping 127.0.0.1 and get a reply.",
-        answer: "FIX",
-        why: "The loopback reply means the computer's internal network stack is healthy."
-      },
-      {
-        prompt: "A switch has 3 cables plugged in. All lights are solid amber.",
-        answer: "FAIL",
-        why: "This is likely Spanning Tree blocking traffic to prevent a loop."
-      },
-      {
-        prompt: "Subnet mask: 255.255.255.0\nPC A: 192.168.1.10\nPC B: 192.168.1.20",
-        answer: "FIX",
-        why: "Both devices are in the same /24 neighborhood."
-      },
-      {
-        prompt: "PC IP: 192.168.10.22\nMask: 255.255.255.0\nGateway: 192.168.10.1",
-        answer: "FIX",
-        why: "The host and gateway are in the same /24 network."
-      },
-      {
-        prompt: "PC IP: 10.1.4.25\nMask: 255.255.255.0\nGateway: 10.1.5.1",
-        answer: "FAIL",
-        why: "With a /24 mask, 10.1.4.x and 10.1.5.x are different local networks."
-      },
-      {
-        prompt: "Ethernet status: Media Disconnected",
-        answer: "FAIL",
-        why: "The physical link is down. Start with the cable, wall jack, or switch port."
-      },
-      {
-        prompt: "PC can ping 8.8.8.8 but cannot browse to example.com.",
-        answer: "FAIL",
-        why: "IP connectivity works, but name resolution is likely failing."
-      },
-      {
-        prompt: "DHCP enabled: Yes\nIP Address: 169.254.44.8",
-        answer: "FAIL",
-        why: "A 169.254 address usually means DHCP failed and APIPA assigned a fallback address."
-      },
-      {
-        prompt: "Switch port light is green and blinking.",
-        answer: "FIX",
-        why: "A blinking green link light usually means the port is connected and passing traffic."
-      },
-      {
-        prompt: "Default Gateway field is blank on a PC that needs Internet access.",
-        answer: "FAIL",
-        why: "Without a default gateway, the PC cannot leave its local network."
+        label: "Bank B",
+        items: [
+          {
+            prompt: "PC IP: 10.0.0.5\nMask: 255.255.0.0\nGateway: 10.0.0.1",
+            answer: "FIX",
+            why: "With a /16 mask, 10.0.x.x is all one network, so the gateway is reachable."
+          },
+          {
+            prompt: "DNS Server: blank\nPC can ping 8.8.8.8\nPC cannot open google.com",
+            answer: "FAIL",
+            why: "No DNS server means names cannot be resolved, even if IP routing works."
+          },
+          {
+            prompt: "Duplex: Half\nSpeed: 100\nExpected: Full duplex gigabit",
+            answer: "FAIL",
+            why: "A duplex or speed mismatch causes collisions and poor performance."
+          },
+          {
+            prompt: "Two PCs share IP 192.168.1.50 on the same switch.",
+            answer: "FAIL",
+            why: "Duplicate IPs cause an IP conflict, making both machines unreliable."
+          },
+          {
+            prompt: "Switch port: Access\nVLAN: 10\nDevice needs VLAN 10",
+            answer: "FIX",
+            why: "The port is correctly assigned to the VLAN the device requires."
+          },
+          {
+            prompt: "Firewall rule: DENY TCP any any port 443",
+            answer: "FAIL",
+            why: "Blocking port 443 prevents all HTTPS traffic, breaking secure web browsing."
+          },
+          {
+            prompt: "PC IP: 172.16.5.10\nMask: 255.255.255.0\nGateway: 172.16.5.1",
+            answer: "FIX",
+            why: "The PC and gateway are both in the 172.16.5.x /24 network."
+          },
+          {
+            prompt: "NIC driver: Not installed\nEthernet adapter: Unknown device",
+            answer: "FAIL",
+            why: "Without a driver, the OS cannot use the NIC — no driver means no network."
+          },
+          {
+            prompt: "Ping result: Request timed out (4 of 4 packets lost)",
+            answer: "FAIL",
+            why: "100% packet loss means the destination is unreachable or blocking ICMP."
+          },
+          {
+            prompt: "SSH enabled on router\nPort 22 open\nStrong password set",
+            answer: "FIX",
+            why: "SSH with a strong password is a secure, accepted remote management method."
+          },
+          {
+            prompt: "Subnet: 192.168.1.0/24\nBroadcast address used as host IP: 192.168.1.255",
+            answer: "FAIL",
+            why: "The broadcast address cannot be assigned to a host."
+          },
+          {
+            prompt: "Cable: Straight-through\nConnecting: PC to switch port",
+            answer: "FIX",
+            why: "Straight-through cables are correct for PC-to-switch connections."
+          }
+        ]
       }
     ]
   },
@@ -76,7 +146,10 @@ const sections = [
     type: "rapidQuiz",
     intro: "Read each question out loud. Students answer with reactions: thumbs up = A, heart = B, surprised = C, clap = D.",
     instructor: "Keep the pace quick. Reveal the correct letter, give the one-line reason, then move on.",
-    questions: [
+    banks: [
+      {
+        label: "Bank A",
+        questions: [
       {
         q: "Which device uses MAC addresses to send data to the right port?",
         choices: ["Hub", "Switch", "Router", "Firewall"],
@@ -125,7 +198,12 @@ const sections = [
         answer: 0,
         why: "DNS translates hostnames into IP addresses.",
         reasoning: "ARP maps IP to MAC, NTP syncs clocks, FTP moves files. DNS is the directory service: you give it a name, it returns an IP address."
+      }
+        ]
       },
+      {
+        label: "Bank B",
+        questions: [
       {
         q: "Which command tests whether another host responds?",
         choices: ["ping", "format", "mkdir", "copy"],
@@ -175,6 +253,8 @@ const sections = [
         why: "ipconfig /all shows adapter details including physical address.",
         reasoning: "ipconfig alone shows IP, mask, and gateway. The /all switch adds the physical (MAC) address, DHCP status, lease dates, DNS servers, and adapter description."
       }
+        ]
+      }
     ]
   },
   {
@@ -184,7 +264,10 @@ const sections = [
     type: "singleChoice",
     intro: "Students choose the best next troubleshooting command for each scenario.",
     instructor: "Push students toward bottom-up troubleshooting: verify the local device, then the gateway, then the path, then services.",
-    questions: [
+    banks: [
+      {
+        label: "Bank A",
+        questions: [
       {
         prompt: "The Internet is down for everyone in the building. What do you do first?",
         choices: [
@@ -231,7 +314,12 @@ const sections = [
         answer: 0,
         why: "ipconfig /all shows detailed adapter configuration.",
         reasoning: "Basic ipconfig only shows IP, mask, and gateway. The /all flag adds physical (MAC) address, DHCP enabled/disabled, lease dates, and configured DNS servers for every adapter."
+      }
+        ]
       },
+      {
+        label: "Bank B",
+        questions: [
       {
         prompt: "You suspect a hostname is resolving to the wrong IP address.",
         choices: ["nslookup example.com", "ping 127.0.0.1", "ipconfig /release", "net use"],
@@ -266,6 +354,8 @@ const sections = [
         answer: 0,
         why: "show vlan is the switch-side command for VLAN membership.",
         reasoning: "show vlan is a Cisco IOS command run on the switch itself, not the PC. It lists every VLAN ID, its name, and the ports assigned to it — essential for confirming port segmentation."
+      }
+        ]
       }
     ]
   },
@@ -358,7 +448,10 @@ const sections = [
     type: "singleChoice",
     intro: "Students investigate short case files and pick the most likely cause or next fix.",
     instructor: "Ask students which evidence matters most before revealing the answer.",
-    questions: [
+    banks: [
+      {
+        label: "Bank A",
+        questions: [
       {
         prompt: "Case File: The Red Light Mystery. A user can't get to the shared drive. ipconfig shows Media Disconnected. What is the most likely fix?",
         choices: [
@@ -405,7 +498,12 @@ const sections = [
         answer: 0,
         why: "APIPA indicates the client did not receive DHCP settings.",
         reasoning: "Since other users are fine, DHCP is running. This one client did not get a lease — check the cable, switch port, and run ipconfig /renew. If it still fails, check for a DHCP reservation conflict."
+      }
+        ]
       },
+      {
+        label: "Bank B",
+        questions: [
       {
         prompt: "A desktop can ping the gateway but cannot ping 8.8.8.8. Other departments can use the Internet.",
         choices: ["Check routing/firewall beyond the gateway", "Replace the keyboard", "Ignore the gateway", "Change HTTP to HTTPS"],
@@ -440,6 +538,8 @@ const sections = [
         answer: 0,
         why: "Movement-related drops point to physical connection or wireless signal.",
         reasoning: "Movement triggering the drops is the key clue. It points to a bent or loose cable, a damaged connector, or a weak Wi-Fi signal that drops when the laptop shifts position."
+      }
+        ]
       }
     ]
   },
@@ -592,11 +692,11 @@ let timerSeconds = 0;
 let timerId = null;
 const bookmarkStorageKey = "jna-bootcamp-bookmarks";
 const state = {
-  warmup: { index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
-  sprint: { index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
-  command: { index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
+  warmup: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
+  sprint: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
+  command: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
   escape: { index: 0, complete: false, order: [], position: 0 },
-  detective: { index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
+  detective: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
   matching: { revealed: false, selections: {}, order: [], position: 0 },
   mistakes: { revealed: false },
   final: { revealed: false, page: 0, order: [] }
@@ -706,14 +806,16 @@ function renderFixFail(section) {
   const body = view.querySelector(".activity-body");
   const controls = view.querySelector(".control-row");
   const local = state.warmup;
-  const activeIndex = getActiveRotatingIndex(local, section.items.length);
-  const item = section.items[activeIndex];
+  const bank = section.banks[local.bankIndex];
+  const totalBanks = section.banks.length;
+  const activeIndex = getActiveRotatingIndex(local, bank.items.length);
+  const item = bank.items[activeIndex];
   const savedAnswer = local.answers[activeIndex];
   local.selected = savedAnswer !== undefined ? savedAnswer.selected : null;
   local.revealed = savedAnswer !== undefined ? savedAnswer.revealed : false;
   body.innerHTML = `
     <div class="prompt-card">
-      <p class="eyebrow">Scenario ${local.position + 1} of ${section.items.length}</p>
+      <p class="eyebrow">${bank.label} · Scenario ${local.position + 1} of ${bank.items.length}</p>
       <code class="code-output">${escapeHtml(item.prompt)}</code>
     </div>
     <div class="answer-row">
@@ -762,15 +864,23 @@ function renderFixFail(section) {
       renderSection();
     }, "secondary"),
     makeButton("Previous Scenario", () => {
-      retreatRotation(local, section.items.length);
+      retreatRotation(local, bank.items.length);
       renderSection();
     }, "secondary"),
     makeButton("Next Scenario", () => {
-      advanceRotation(local, section.items.length);
+      advanceRotation(local, bank.items.length);
       renderSection();
     }, "secondary"),
+    ...(local.bankIndex > 0 ? [makeButton("← Previous Bank", () => {
+      local.bankIndex--; local.order = []; local.position = 0; local.answers = {}; local.selected = null; local.revealed = false;
+      renderSection();
+    }, "secondary")] : []),
+    ...(local.bankIndex < totalBanks - 1 ? [makeButton("Next Bank →", () => {
+      local.bankIndex++; local.order = []; local.position = 0; local.answers = {}; local.selected = null; local.revealed = false;
+      renderSection();
+    }, "secondary")] : []),
     makeButton("Reset", () => {
-      resetRotation(local, section.items.length);
+      resetRotation(local, bank.items.length);
       local.selected = null;
       local.revealed = false;
       local.answers = {};
@@ -784,15 +894,17 @@ function renderRapidQuiz(section) {
   const body = view.querySelector(".activity-body");
   const controls = view.querySelector(".control-row");
   const local = state.sprint;
-  const activeIndex = getActiveRotatingIndex(local, section.questions.length);
-  const q = section.questions[activeIndex];
+  const bank = section.banks[local.bankIndex];
+  const totalBanks = section.banks.length;
+  const activeIndex = getActiveRotatingIndex(local, bank.questions.length);
+  const q = bank.questions[activeIndex];
   const letters = ["A", "B", "C", "D"];
   const savedAnswer = local.answers[activeIndex];
   local.selected = savedAnswer !== undefined ? savedAnswer.selected : null;
   local.revealed = savedAnswer !== undefined ? savedAnswer.revealed : false;
   body.innerHTML = `
     <div class="prompt-card">
-      <p class="eyebrow">Question ${local.position + 1} of ${section.questions.length} | A=thumbs up B=heart C=surprised D=clap</p>
+      <p class="eyebrow">${bank.label} · Question ${local.position + 1} of ${bank.questions.length} | A=thumbs up B=heart C=surprised D=clap</p>
       <p class="large-prompt">${q.q}</p>
     </div>
     <div class="grid two">
@@ -836,15 +948,23 @@ function renderRapidQuiz(section) {
       renderSection();
     }, "secondary"),
     makeButton("Previous Question", () => {
-      retreatRotation(local, section.questions.length);
+      retreatRotation(local, bank.questions.length);
       renderSection();
     }, "secondary"),
     makeButton("Next Question", () => {
-      advanceRotation(local, section.questions.length);
+      advanceRotation(local, bank.questions.length);
       renderSection();
     }, "secondary"),
+    ...(local.bankIndex > 0 ? [makeButton("← Previous Bank", () => {
+      local.bankIndex--; local.order = []; local.position = 0; local.answers = {}; local.selected = null; local.revealed = false;
+      renderSection();
+    }, "secondary")] : []),
+    ...(local.bankIndex < totalBanks - 1 ? [makeButton("Next Bank →", () => {
+      local.bankIndex++; local.order = []; local.position = 0; local.answers = {}; local.selected = null; local.revealed = false;
+      renderSection();
+    }, "secondary")] : []),
     makeButton("Reset", () => {
-      resetRotation(local, section.questions.length);
+      resetRotation(local, bank.questions.length);
       local.selected = null;
       local.revealed = false;
       local.answers = {};
@@ -858,7 +978,9 @@ function renderSingleChoice(section) {
   const body = view.querySelector(".activity-body");
   const controls = view.querySelector(".control-row");
   const local = state[section.id];
-  const questions = section.questions || [section];
+  const bank = section.banks[local.bankIndex];
+  const totalBanks = section.banks.length;
+  const questions = bank.questions;
   const activeIndex = getActiveRotatingIndex(local, questions.length);
   const active = questions[activeIndex];
   const savedAnswer = local.answers[activeIndex];
@@ -866,7 +988,7 @@ function renderSingleChoice(section) {
   local.revealed = savedAnswer !== undefined ? savedAnswer.revealed : false;
   body.innerHTML = `
     <div class="prompt-card">
-      <p class="eyebrow">Question ${local.position + 1} of ${questions.length}</p>
+      <p class="eyebrow">${bank.label} · Question ${local.position + 1} of ${questions.length}</p>
       <p class="large-prompt">${active.prompt}</p>
     </div>
     <div class="grid">
@@ -917,6 +1039,14 @@ function renderSingleChoice(section) {
       advanceRotation(local, questions.length);
       renderSection();
     }, "secondary"),
+    ...(local.bankIndex > 0 ? [makeButton("← Previous Bank", () => {
+      local.bankIndex--; local.order = []; local.position = 0; local.answers = {}; local.selected = null; local.revealed = false;
+      renderSection();
+    }, "secondary")] : []),
+    ...(local.bankIndex < totalBanks - 1 ? [makeButton("Next Bank →", () => {
+      local.bankIndex++; local.order = []; local.position = 0; local.answers = {}; local.selected = null; local.revealed = false;
+      renderSection();
+    }, "secondary")] : []),
     makeButton("Reset", () => {
       resetRotation(local, questions.length);
       local.selected = null;
@@ -1214,6 +1344,7 @@ function setAppMode(mode) {
     if ("revealed" in local) local.revealed = false;
     if ("selected" in local) local.selected = null;
     if ("answers" in local) local.answers = {};
+    if ("bankIndex" in local) { local.bankIndex = 0; local.order = []; local.position = 0; }
   });
   renderSection();
 }
