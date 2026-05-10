@@ -720,7 +720,7 @@ function computeExamScore() {
 function renderExamScore() {
   const el = document.getElementById("exam-score");
   if (!el) return;
-  if (appMode !== "exam") {
+  if (appMode === "study") {
     el.classList.add("hidden");
     return;
   }
@@ -728,6 +728,14 @@ function renderExamScore() {
   const wrong = answered - correct;
   const pct = answered > 0 ? Math.round((correct / answered) * 100) : null;
   el.classList.remove("hidden");
+  if (appMode === "comptia") {
+    el.innerHTML = `
+      <span class="timer-label">CompTIA Mode</span>
+      <p class="score-pct">${answered > 0 ? `${answered} answered` : "No answers submitted yet."}</p>
+      <p class="score-pct" style="font-size:0.7rem;opacity:0.6">Score revealed at section end</p>
+    `;
+    return;
+  }
   el.innerHTML = `
     <span class="timer-label">Exam Score</span>
     <div class="score-tally">
@@ -751,6 +759,7 @@ function init() {
   document.getElementById("next-section").addEventListener("click", () => moveSection(1));
   document.getElementById("study-mode").addEventListener("click", () => setAppMode("study"));
   document.getElementById("exam-mode").addEventListener("click", () => setAppMode("exam"));
+  document.getElementById("comptia-mode").addEventListener("click", () => setAppMode("comptia"));
   document.getElementById("timer-toggle").addEventListener("click", toggleTimer);
   document.getElementById("timer-reset").addEventListener("click", resetTimer);
 }
@@ -794,7 +803,9 @@ function renderSection() {
 function panel(section) {
   const template = document.getElementById("activity-shell");
   const node = template.content.cloneNode(true);
-  const modeNote = appMode === "exam" ? "Exam mode: choose an answer first, then submit when ready." : section.intro;
+  const modeNote = appMode === "exam" ? "Exam mode: choose an answer first, then submit when ready."
+    : appMode === "comptia" ? "CompTIA mode: select your answer and submit — no going back, no skipping."
+    : section.intro;
   node.querySelector(".activity-copy").innerHTML = `<p class="lead">${modeNote}</p>`;
   node.querySelector(".instructor-note").textContent = section.instructor;
   content.appendChild(node);
@@ -833,7 +844,7 @@ function renderFixFail(section) {
   body.querySelectorAll("[data-answer]").forEach((button) => {
     button.addEventListener("click", () => {
       local.selected = button.dataset.answer;
-      if (appMode === "exam") {
+      if (appMode === "exam" || appMode === "comptia") {
         local.answers[activeIndex] = { selected: local.selected, revealed: false, correct: null };
         renderSection();
         return;
@@ -844,14 +855,17 @@ function renderFixFail(section) {
     });
   });
   controls.append(
-    makeButton(appMode === "exam" ? "Submit Answer" : "Reveal Answer", () => {
-      if (appMode === "exam" && !local.selected) {
+    makeButton(appMode !== "study" ? "Submit Answer" : "Reveal Answer", () => {
+      if (appMode !== "study" && !local.selected) {
         showTemporaryFeedback(body, "Choose FIX or FAIL before submitting.");
         return;
       }
       local.revealed = true;
       local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === item.answer };
       renderSection();
+      if (appMode === "comptia") {
+        setTimeout(() => { advanceRotation(local, bank.items.length); renderSection(); }, 1500);
+      }
     }),
     makeButton(getBookmarkLabel("warmup", activeIndex), () => {
       toggleBookmark({
@@ -863,15 +877,15 @@ function renderFixFail(section) {
       });
       renderSection();
     }, "secondary"),
-    makeButton("Previous Scenario", () => {
+    ...(appMode !== "comptia" ? [makeButton("Previous Scenario", () => {
       retreatRotation(local, bank.items.length);
       renderSection();
-    }, "secondary"),
+    }, "secondary")] : []),
     makeButton("Next Scenario", () => {
       advanceRotation(local, bank.items.length);
       renderSection();
     }, "secondary"),
-    ...(local.bankIndex > 0 ? [makeButton("← Previous Bank", () => {
+    ...(appMode !== "comptia" && local.bankIndex > 0 ? [makeButton("← Previous Bank", () => {
       local.bankIndex--; local.order = []; local.position = 0; local.answers = {}; local.selected = null; local.revealed = false;
       renderSection();
     }, "secondary")] : []),
@@ -928,14 +942,17 @@ function renderRapidQuiz(section) {
     });
   });
   controls.append(
-    makeButton(appMode === "exam" ? "Submit Answer" : "Reveal Answer", () => {
-      if (appMode === "exam" && local.selected === null) {
+    makeButton(appMode !== "study" ? "Submit Answer" : "Reveal Answer", () => {
+      if (appMode !== "study" && local.selected === null) {
         showTemporaryFeedback(body, "Choose an answer before submitting.");
         return;
       }
       local.revealed = true;
       local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === q.answer };
       renderSection();
+      if (appMode === "comptia") {
+        setTimeout(() => { advanceRotation(local, bank.questions.length); renderSection(); }, 1500);
+      }
     }),
     makeButton(getBookmarkLabel("sprint", activeIndex), () => {
       toggleBookmark({
@@ -947,15 +964,15 @@ function renderRapidQuiz(section) {
       });
       renderSection();
     }, "secondary"),
-    makeButton("Previous Question", () => {
+    ...(appMode !== "comptia" ? [makeButton("Previous Question", () => {
       retreatRotation(local, bank.questions.length);
       renderSection();
-    }, "secondary"),
+    }, "secondary")] : []),
     makeButton("Next Question", () => {
       advanceRotation(local, bank.questions.length);
       renderSection();
     }, "secondary"),
-    ...(local.bankIndex > 0 ? [makeButton("← Previous Bank", () => {
+    ...(appMode !== "comptia" && local.bankIndex > 0 ? [makeButton("← Previous Bank", () => {
       local.bankIndex--; local.order = []; local.position = 0; local.answers = {}; local.selected = null; local.revealed = false;
       renderSection();
     }, "secondary")] : []),
@@ -1012,14 +1029,17 @@ function renderSingleChoice(section) {
     });
   });
   controls.append(
-    makeButton(appMode === "exam" ? "Submit Answer" : "Reveal Answer", () => {
-      if (appMode === "exam" && local.selected === null) {
+    makeButton(appMode !== "study" ? "Submit Answer" : "Reveal Answer", () => {
+      if (appMode !== "study" && local.selected === null) {
         showTemporaryFeedback(body, "Choose an answer before submitting.");
         return;
       }
       local.revealed = true;
       local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === active.answer };
       renderSection();
+      if (appMode === "comptia") {
+        setTimeout(() => { advanceRotation(local, questions.length); renderSection(); }, 1500);
+      }
     }),
     makeButton(getBookmarkLabel(section.id, activeIndex), () => {
       toggleBookmark({
@@ -1031,15 +1051,15 @@ function renderSingleChoice(section) {
       });
       renderSection();
     }, "secondary"),
-    makeButton("Previous Question", () => {
+    ...(appMode !== "comptia" ? [makeButton("Previous Question", () => {
       retreatRotation(local, questions.length);
       renderSection();
-    }, "secondary"),
+    }, "secondary")] : []),
     makeButton("Next Question", () => {
       advanceRotation(local, questions.length);
       renderSection();
     }, "secondary"),
-    ...(local.bankIndex > 0 ? [makeButton("← Previous Bank", () => {
+    ...(appMode !== "comptia" && local.bankIndex > 0 ? [makeButton("← Previous Bank", () => {
       local.bankIndex--; local.order = []; local.position = 0; local.answers = {}; local.selected = null; local.revealed = false;
       renderSection();
     }, "secondary")] : []),
@@ -1344,7 +1364,7 @@ function setAppMode(mode) {
     if ("revealed" in local) local.revealed = false;
     if ("selected" in local) local.selected = null;
     if ("answers" in local) local.answers = {};
-    if ("bankIndex" in local) { local.bankIndex = 0; local.order = []; local.position = 0; }
+    // bankIndex intentionally NOT reset — bank position persists across mode switches
   });
   renderSection();
 }
@@ -1352,10 +1372,13 @@ function setAppMode(mode) {
 function renderModeButtons() {
   const studyButton = document.getElementById("study-mode");
   const examButton = document.getElementById("exam-mode");
+  const comptiaButton = document.getElementById("comptia-mode");
   studyButton.classList.toggle("active", appMode === "study");
   examButton.classList.toggle("active", appMode === "exam");
+  comptiaButton.classList.toggle("active", appMode === "comptia");
   studyButton.setAttribute("aria-pressed", appMode === "study");
   examButton.setAttribute("aria-pressed", appMode === "exam");
+  comptiaButton.setAttribute("aria-pressed", appMode === "comptia");
 }
 
 function getResultClass(selected, answer) {

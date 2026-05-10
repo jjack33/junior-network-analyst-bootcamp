@@ -81,6 +81,11 @@ button {
   background: var(--green);
 }
 
+#comptia-mode.active {
+  background: #e8a020;
+  color: #000;
+}
+
 .eyebrow {
   margin: 0 0 6px;
   color: var(--green);
