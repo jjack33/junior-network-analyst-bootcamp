@@ -677,6 +677,114 @@ const sections = [
     ]
   },
   {
+    id: "ports",
+    time: "Cert Prep",
+    title: "Port Numbers Drill",
+    type: "rapidQuiz",
+    intro: "Multiple-choice port number questions. Knowing ports cold is mandatory for Network+.",
+    instructor: "Port memorization is heavily tested on CompTIA Network+. Run Bank A first, then Bank B for a second pass.",
+    banks: [
+      {
+        label: "Bank A",
+        questions: [
+          { q: "Which port does SSH (Secure Shell) use?", choices: ["21", "22", "23", "25"], answer: 1, why: "Port 22 is SSH — encrypted remote login. Port 21 is FTP, 23 is Telnet (unencrypted), 25 is SMTP.", reasoning: "SSH replaced Telnet for secure remote management. 22 = Secure Shell, 23 = Telnet (one less secure, one number above)." },
+          { q: "Which port does Telnet use?", choices: ["22", "23", "25", "80"], answer: 1, why: "Port 23 is Telnet — unencrypted remote login that sends credentials in plaintext, which is why SSH replaced it.", reasoning: "Telnet = 23, SSH = 22. On the exam, Telnet is always the wrong answer when security is mentioned." },
+          { q: "SMTP (sending email between servers) uses which port?", choices: ["25", "110", "143", "443"], answer: 0, why: "Port 25 is SMTP — Simple Mail Transfer Protocol, used to send email between mail servers.", reasoning: "SMTP = 25 (Sending). POP3 = 110 (Pulling inbox). IMAP = 143 (Interactive inbox). Grouping by function helps." },
+          { q: "DNS resolves hostnames to IPs. Which port does it use?", choices: ["52", "53", "54", "55"], answer: 1, why: "Port 53 is DNS. Both UDP (queries) and TCP (zone transfers) use port 53.", reasoning: "DNS = 53. DNS has 3 letters, port is 5+3. Just memorize it — it's on every exam." },
+          { q: "Which port does HTTP (unencrypted web traffic) use?", choices: ["80", "8080", "443", "8443"], answer: 0, why: "Port 80 is HTTP. Data is not encrypted. Port 443 is HTTPS (encrypted).", reasoning: "80 = HTTP (open/unsecured), 443 = HTTPS (encrypted). If TLS or SSL is mentioned, the answer is 443." },
+          { q: "HTTPS uses which port?", choices: ["80", "443", "8080", "4443"], answer: 1, why: "Port 443 is HTTPS — HTTP over TLS/SSL encryption. All modern secure web traffic uses it.", reasoning: "443 is always the secure web port. 80 is plain HTTP. Both are tested on the cert exam." },
+          { q: "POP3 (downloading email to client) uses which port?", choices: ["25", "53", "110", "143"], answer: 2, why: "Port 110 is POP3 — Post Office Protocol v3. Downloads email and (by default) removes it from the server.", reasoning: "POP3 = 110. Think PO Box — you pick up mail and it's gone. IMAP = 143 keeps mail on the server." },
+          { q: "IMAP (syncing email across devices) uses which port?", choices: ["25", "110", "143", "993"], answer: 2, why: "Port 143 is IMAP — Internet Message Access Protocol. It syncs email and keeps it on the server.", reasoning: "IMAP = 143. Newer and smarter than POP3 (110). 143 > 110 just like IMAP > POP3 in capability." }
+        ]
+      },
+      {
+        label: "Bank B",
+        questions: [
+          { q: "RDP (Remote Desktop Protocol) uses which port?", choices: ["22", "3306", "3389", "5900"], answer: 2, why: "Port 3389 is RDP — Windows Remote Desktop. It provides GUI remote access to Windows machines.", reasoning: "3389 = RDP. Common attack target on exposed Windows servers. VNC uses 5900, SSH uses 22." },
+          { q: "SNMP (network device monitoring) uses which port?", choices: ["69", "161", "162", "514"], answer: 1, why: "Port 161 is SNMP (UDP) — Simple Network Management Protocol for polling device stats like CPU and bandwidth.", reasoning: "SNMP = 161 (queries) / 162 (traps). SNMP traps are alerts sent TO the manager. 161 is the polling port." },
+          { q: "LDAP (directory services, like Active Directory) uses which port?", choices: ["389", "443", "636", "3268"], answer: 0, why: "Port 389 is LDAP — Lightweight Directory Access Protocol used to query AD and directory services.", reasoning: "LDAP = 389 (unencrypted). LDAPS (secure LDAP) = 636. For Network+, 389 is the standard exam answer." },
+          { q: "SMB (Windows file sharing) uses which port?", choices: ["137", "139", "445", "546"], answer: 2, why: "Port 445 is SMB — Server Message Block, used for Windows file and printer sharing over TCP.", reasoning: "SMB = 445 (modern). 139 = NetBIOS over TCP (legacy SMB). For Network+, 445 is the right answer." },
+          { q: "FTP (unencrypted file transfer) uses which two ports?", choices: ["20 and 21", "21 and 22", "69 and 70", "21 and 23"], answer: 0, why: "FTP uses port 21 for control (commands) and port 20 for data transfer. SFTP (SSH-based) uses port 22.", reasoning: "FTP = 20 (data) / 21 (control). FTPS uses 990/989. SFTP uses 22. Know all three for the exam." },
+          { q: "DHCP uses which two UDP ports?", choices: ["66 and 67", "67 and 68", "68 and 69", "53 and 67"], answer: 1, why: "DHCP uses UDP port 67 (server listens) and port 68 (client listens). Clients broadcast to discover servers.", reasoning: "DHCP = 67 (server) and 68 (client). Server has the lower number here. Both are UDP — connectionless." },
+          { q: "TFTP (Trivial File Transfer, no authentication) uses which port?", choices: ["21", "22", "69", "443"], answer: 2, why: "Port 69 is TFTP — a simplified, unauthenticated UDP protocol used to load router configs or PXE boot devices.", reasoning: "TFTP = 69. No authentication, UDP only. Used in network booting and uploading IOS firmware to routers." },
+          { q: "NTP (Network Time Protocol) uses which port?", choices: ["119", "123", "161", "514"], answer: 1, why: "Port 123 is NTP — synchronizes clocks across devices. Accurate time is critical for logs and certificates.", reasoning: "NTP = 123. Without time sync, SSL/TLS certificates may reject and security logs become unreliable." }
+        ]
+      }
+    ]
+  },
+  {
+    id: "subnetting",
+    time: "Cert Prep",
+    title: "Subnetting Practice",
+    type: "rapidQuiz",
+    intro: "CIDR and subnet mask questions. These appear on every Network+ exam.",
+    instructor: "Subnetting is worth drilling repeatedly. Bank A covers host counts; Bank B covers addresses and notation.",
+    banks: [
+      {
+        label: "Bank A — Host Counts",
+        questions: [
+          { q: "How many usable host addresses does a /24 subnet provide?", choices: ["254", "255", "256", "512"], answer: 0, why: "A /24 has 256 total addresses (2^8). Subtract 2 (network + broadcast) = 254 usable hosts.", reasoning: "Formula: 2^(32-prefix) - 2. For /24: 2^8 - 2 = 254. The -2 accounts for network ID and broadcast address." },
+          { q: "How many usable hosts are in a /25 subnet?", choices: ["62", "126", "128", "254"], answer: 1, why: "A /25 has 128 total addresses (2^7). Subtract 2 = 126 usable hosts.", reasoning: "Each bit added to the prefix halves the host count. /24=254, /25=126, /26=62, /27=30…" },
+          { q: "How many usable hosts are in a /26 subnet?", choices: ["30", "62", "64", "126"], answer: 1, why: "A /26 has 64 total addresses (2^6). Subtract 2 = 62 usable hosts.", reasoning: "/26 = 64 total, 62 usable. /25 doubles that. Memorize the chain: 30, 62, 126, 254." },
+          { q: "How many usable hosts are in a /27 subnet?", choices: ["14", "30", "32", "62"], answer: 1, why: "A /27 has 32 total addresses (2^5). Subtract 2 = 30 usable hosts.", reasoning: "Chain: /30=2, /29=6, /28=14, /27=30, /26=62, /25=126, /24=254. Each step doubles +2." },
+          { q: "How many usable hosts are in a /28 subnet?", choices: ["12", "14", "16", "30"], answer: 1, why: "A /28 has 16 total addresses (2^4). Subtract 2 = 14 usable hosts.", reasoning: "/28 = 16 total, 14 usable. Common for small office subnets or VLAN segments." },
+          { q: "How many usable hosts are in a /29 subnet?", choices: ["4", "6", "8", "14"], answer: 1, why: "A /29 has 8 total addresses (2^3). Subtract 2 = 6 usable hosts. Common for router point-to-point links.", reasoning: "/29 = 8 total, 6 usable. /30 has only 2 usable — the classic point-to-point WAN link size." },
+          { q: "How many usable hosts does a /30 subnet provide?", choices: ["2", "4", "6", "8"], answer: 0, why: "A /30 has 4 total addresses (2^2). Subtract 2 = 2 usable hosts. Classic point-to-point WAN link size.", reasoning: "/30 = 2 hosts only. Perfect for connecting two routers. Any larger subnet wastes addresses there." },
+          { q: "What subnet mask corresponds to /24?", choices: ["255.0.0.0", "255.255.0.0", "255.255.255.0", "255.255.255.128"], answer: 2, why: "A /24 mask has 24 ones: 11111111.11111111.11111111.00000000 = 255.255.255.0", reasoning: "Count the 1-bits in the mask. 255=8 ones. Three 255s = 24 ones = /24. A /16 is 255.255.0.0." }
+        ]
+      },
+      {
+        label: "Bank B — Addresses & Notation",
+        questions: [
+          { q: "For subnet 192.168.1.0/24, what is the broadcast address?", choices: ["192.168.1.0", "192.168.1.1", "192.168.1.254", "192.168.1.255"], answer: 3, why: "Broadcast is always the last address in the subnet. For /24 starting at .0, the last address is .255.", reasoning: "Network address = first (all host bits zero). Broadcast = last (all host bits one). For /24: .0 to .255." },
+          { q: "A host has IP 10.0.0.50 with mask 255.255.255.0. What is its network address?", choices: ["10.0.0.0", "10.0.0.1", "10.0.0.50", "10.0.0.255"], answer: 0, why: "AND the IP with the mask: 10.0.0.50 AND 255.255.255.0 = 10.0.0.0. Host bits are zeroed.", reasoning: "Network address = IP AND mask. With /24 mask, last octet becomes 0. Host bits are cleared." },
+          { q: "IP 172.16.5.200/25 — which subnet is this host in?", choices: ["172.16.5.0/25", "172.16.5.128/25", "172.16.5.192/26", "172.16.5.0/24"], answer: 1, why: "A /25 splits the last octet at 128. .200 falls in the second subnet: 172.16.5.128/25.", reasoning: "Block size for /25 = 128. Subnets: .0–.127 (first) and .128–.255 (second). .200 is in the second block." },
+          { q: "How many /26 subnets can you carve from a single /24?", choices: ["2", "4", "6", "8"], answer: 1, why: "Going from /24 to /26 borrows 2 bits. 2^2 = 4 subnets. Each /26 has 64 addresses.", reasoning: "Subnets = 2^(new prefix - old prefix). /26 - /24 = 2 borrowed bits → 2^2 = 4 subnets." },
+          { q: "What private IP range does 10.0.0.0/8 cover?", choices: ["10.0.0.0 – 10.255.255.255", "10.0.0.0 – 10.0.255.255", "10.0.0.0 – 10.255.0.0", "10.0.0.0 – 10.0.0.255"], answer: 0, why: "A /8 leaves 24 bits for hosts. 10.0.0.0 to 10.255.255.255 is 16,777,216 addresses.", reasoning: "Three private ranges: 10/8 (Class A), 172.16-31/12 (Class B), 192.168/16 (Class C). Memorize all three." },
+          { q: "Which address range is reserved for APIPA?", choices: ["10.0.0.0/8", "169.254.0.0/16", "172.16.0.0/12", "192.168.0.0/16"], answer: 1, why: "APIPA uses 169.254.0.0/16. A device self-assigns this address when DHCP fails.", reasoning: "If you see 169.254.x.x, DHCP failed. The device self-assigned. Check cable, DHCP server, and NIC config." },
+          { q: "You need a subnet for exactly 50 hosts. What is the smallest prefix that works?", choices: ["/25 — 126 hosts", "/26 — 62 hosts", "/27 — 30 hosts", "/28 — 14 hosts"], answer: 1, why: "50 hosts need at least 52 address slots (50 + network + broadcast). /26 gives 62 usable. /27 only gives 30.", reasoning: "Pick the smallest subnet where usable hosts ≥ required. 50 > 30 (/27 fails), 50 ≤ 62 (/26 works)." },
+          { q: "What does CIDR stand for?", choices: ["Classless Inter-Domain Routing", "Classful IP Distribution Routing", "Common Internet Data Range", "Classless IP Data Routing"], answer: 0, why: "CIDR = Classless Inter-Domain Routing. It replaced fixed class-based addressing with flexible prefix lengths.", reasoning: "CIDR replaced Class A/B/C fixed boundaries. The slash notation (/24, /26) is CIDR notation. Key cert term." }
+        ]
+      }
+    ]
+  },
+  {
+    id: "osi",
+    time: "Cert Prep",
+    title: "OSI Layer Mapping",
+    type: "rapidQuiz",
+    intro: "Map protocols, devices, and concepts to the correct OSI layer. A classic CompTIA exam format.",
+    instructor: "OSI is heavily tested on Network+. Bank A covers devices and protocols; Bank B focuses on troubleshooting by layer.",
+    banks: [
+      {
+        label: "Bank A — Protocols & Devices",
+        questions: [
+          { q: "At which OSI layer does IP addressing operate?", choices: ["Layer 1 – Physical", "Layer 2 – Data Link", "Layer 3 – Network", "Layer 4 – Transport"], answer: 2, why: "IP addressing is a Layer 3 (Network) function. Routers use IP addresses to route packets between networks.", reasoning: "OSI 1-7: Physical, Data Link, Network, Transport, Session, Presentation, Application. IP = Layer 3." },
+          { q: "Which OSI layer does a switch primarily operate at?", choices: ["Layer 1", "Layer 2", "Layer 3", "Layer 4"], answer: 1, why: "Switches operate at Layer 2 (Data Link) and forward frames using MAC addresses. Layer 3 switches can also route.", reasoning: "Switch = Layer 2 (MAC). Router = Layer 3 (IP). Hub = Layer 1 (dumb repeater, no addressing)." },
+          { q: "HTTP and HTTPS operate at which OSI layer?", choices: ["Layer 4 – Transport", "Layer 5 – Session", "Layer 6 – Presentation", "Layer 7 – Application"], answer: 3, why: "HTTP and HTTPS are Application layer (Layer 7) protocols. They define how web browsers and servers communicate.", reasoning: "Layer 7 = what users interact with: HTTP, DNS, SMTP, FTP. Layer 4 = TCP/UDP. Never confuse them." },
+          { q: "TCP and UDP operate at which OSI layer?", choices: ["Layer 2", "Layer 3", "Layer 4", "Layer 5"], answer: 2, why: "TCP and UDP are Transport layer (Layer 4) protocols. They handle end-to-end delivery, ports, and flow control.", reasoning: "Layer 4 = Transport = TCP (reliable) and UDP (fast, no guarantees). Port numbers live at Layer 4." },
+          { q: "A hub operates at which OSI layer?", choices: ["Layer 1", "Layer 2", "Layer 3", "Layer 4"], answer: 0, why: "A hub operates at Layer 1 (Physical). It repeats electrical signals to all ports with no intelligence or addressing.", reasoning: "Hub = Layer 1 (dumb repeater). Switch = Layer 2 (MAC-aware). Router = Layer 3 (IP-aware)." },
+          { q: "Which layer is responsible for MAC addresses and Ethernet framing?", choices: ["Layer 1 – Physical", "Layer 2 – Data Link", "Layer 3 – Network", "Layer 4 – Transport"], answer: 1, why: "Layer 2 (Data Link) defines MAC addressing, Ethernet framing, and local delivery between devices on the same network.", reasoning: "Data Link (2) = MAC + frames. Network (3) = IP + packets. Physical (1) = bits + cables." },
+          { q: "DNS operates at which OSI layer?", choices: ["Layer 3", "Layer 4", "Layer 6", "Layer 7"], answer: 3, why: "DNS is an Application layer (Layer 7) protocol. It resolves hostnames to IP addresses using UDP port 53.", reasoning: "DNS = Layer 7. Even though it helps Layer 3 routing, DNS itself is an application-layer service." },
+          { q: "Which OSI layer handles encryption and data format translation (e.g., TLS, JPEG, ASCII)?", choices: ["Layer 4 – Transport", "Layer 5 – Session", "Layer 6 – Presentation", "Layer 7 – Application"], answer: 2, why: "Layer 6 (Presentation) handles encryption, encoding, and format conversion. TLS encryption lives here.", reasoning: "Presentation (6) = format + encryption. Session (5) = managing connections (setup/teardown/dialog)." }
+        ]
+      },
+      {
+        label: "Bank B — Troubleshooting by Layer",
+        questions: [
+          { q: "A cable is unplugged. Which OSI layer does this problem exist at?", choices: ["Layer 1 – Physical", "Layer 2 – Data Link", "Layer 3 – Network", "Layer 4 – Transport"], answer: 0, why: "Unplugged cables, broken ports, and no link lights are Layer 1 (Physical) problems. Always check hardware first.", reasoning: "OSI troubleshooting = bottom-up. Start at Layer 1 (physical) before blaming software or configuration." },
+          { q: "A PC can ping by IP but cannot browse by hostname. Which layer is likely at fault?", choices: ["Layer 1 – Physical", "Layer 3 – Network", "Layer 4 – Transport", "Layer 7 – Application"], answer: 3, why: "IP works (Layer 3 is fine), but name resolution fails — that's a DNS issue at Layer 7 (Application).", reasoning: "If IP ping works, Layers 1-3 are fine. Name resolution = DNS = Layer 7. Check DNS server settings." },
+          { q: "Two PCs on the same switch cannot communicate. Switch config is correct. What layer should you check first?", choices: ["Layer 1 – Physical", "Layer 2 – Data Link", "Layer 3 – Network", "Layer 7 – Application"], answer: 0, why: "If config is correct, start at the bottom. Check cables, link lights, and NIC status — all Layer 1 issues.", reasoning: "Bottom-up troubleshooting: always rule out Layer 1 first. A cable issue is always possible even with correct config." },
+          { q: "A firewall filters traffic by port number. Which OSI layer is it inspecting?", choices: ["Layer 2", "Layer 3", "Layer 4", "Layer 7"], answer: 2, why: "Port numbers are a Layer 4 (Transport) concept. A firewall filtering by port is doing Layer 4 packet inspection.", reasoning: "Port numbers = Layer 4. IP address filtering = Layer 3. Content filtering (URL/app) = Layer 7 (NGFW)." },
+          { q: "VLAN membership is misconfigured, isolating two hosts on the same switch. Which layer is the fault?", choices: ["Layer 1", "Layer 2", "Layer 3", "Layer 4"], answer: 1, why: "VLANs are a Layer 2 (Data Link) concept. Incorrect VLAN membership prevents frames from reaching other hosts.", reasoning: "VLAN = Layer 2. A misconfigured VLAN port isolates hosts even if cabling and IP config are perfect." },
+          { q: "A router drops packets to 10.0.0.0/24 because no route exists. Which layer failed?", choices: ["Layer 1", "Layer 2", "Layer 3", "Layer 4"], answer: 2, why: "Routing decisions use IP addresses at Layer 3 (Network). A missing route is a Layer 3 configuration problem.", reasoning: "Missing route = Layer 3. Check the routing table with 'route print' (Windows) or 'show ip route' (Cisco)." },
+          { q: "A TCP session keeps resetting before a file transfer completes. Which layer is involved?", choices: ["Layer 2", "Layer 3", "Layer 4", "Layer 7"], answer: 2, why: "TCP is a Layer 4 (Transport) protocol. Session resets, dropped connections, and retransmissions are Layer 4 symptoms.", reasoning: "TCP RST flag = Layer 4. Could be firewall, NAT issue, or MTU mismatch. Use netstat or Wireshark to investigate." },
+          { q: "An app fails to authenticate to LDAP. IP and DNS both work. Which layer is suspect?", choices: ["Layer 3", "Layer 4", "Layer 6", "Layer 7"], answer: 3, why: "LDAP is an Application layer (Layer 7) protocol. Auth failures when IP/DNS are fine point to Layer 7.", reasoning: "When lower layers work but the application fails, suspect Layer 7. LDAP, HTTP 401, SMTP auth errors = Layer 7." }
+        ]
+      }
+    ]
+  },
+  {
     id: "bookmarks",
     time: "Review later",
     title: "Bookmarked Review",
@@ -699,7 +807,10 @@ const state = {
   detective: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
   matching: { revealed: false, selections: {}, order: [], position: 0 },
   mistakes: { revealed: false },
-  final: { revealed: false, page: 0, order: [] }
+  final: { revealed: false, page: 0, order: [] },
+  ports: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
+  subnetting: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} },
+  osi: { bankIndex: 0, index: 0, selected: null, revealed: false, order: [], position: 0, answers: {} }
 };
 let bookmarks = loadBookmarks();
 let comptiaTimerId = null;
