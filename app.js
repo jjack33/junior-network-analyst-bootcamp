@@ -551,12 +551,13 @@ const sections = [
 ];
 
 let currentSection = 0;
+let appMode = "study";
 let timerSeconds = 0;
 let timerId = null;
 const bookmarkStorageKey = "jna-bootcamp-bookmarks";
 const state = {
-  warmup: { index: 0, revealed: false, order: [], position: 0 },
-  sprint: { index: 0, revealed: false, order: [], position: 0 },
+  warmup: { index: 0, selected: null, revealed: false, order: [], position: 0 },
+  sprint: { index: 0, selected: null, revealed: false, order: [], position: 0 },
   command: { index: 0, selected: null, revealed: false, order: [], position: 0 },
   escape: { index: 0, complete: false, order: [], position: 0 },
   detective: { index: 0, selected: null, revealed: false, order: [], position: 0 },
@@ -577,6 +578,8 @@ function init() {
   renderSection();
   document.getElementById("prev-section").addEventListener("click", () => moveSection(-1));
   document.getElementById("next-section").addEventListener("click", () => moveSection(1));
+  document.getElementById("study-mode").addEventListener("click", () => setAppMode("study"));
+  document.getElementById("exam-mode").addEventListener("click", () => setAppMode("exam"));
   document.getElementById("timer-toggle").addEventListener("click", toggleTimer);
   document.getElementById("timer-reset").addEventListener("click", resetTimer);
 }
@@ -602,6 +605,7 @@ function renderSection() {
   sectionTime.textContent = section.time;
   content.innerHTML = "";
   renderNav();
+  renderModeButtons();
   document.getElementById("prev-section").disabled = currentSection === 0;
   document.getElementById("next-section").disabled = currentSection === sections.length - 1;
 
@@ -618,7 +622,8 @@ function renderSection() {
 function panel(section) {
   const template = document.getElementById("activity-shell");
   const node = template.content.cloneNode(true);
-  node.querySelector(".activity-copy").innerHTML = `<p class="lead">${section.intro}</p>`;
+  const modeNote = appMode === "exam" ? "Exam mode: choose an answer first, then submit when ready." : section.intro;
+  node.querySelector(".activity-copy").innerHTML = `<p class="lead">${modeNote}</p>`;
   node.querySelector(".instructor-note").textContent = section.instructor;
   content.appendChild(node);
   return content.querySelector(".activity-panel:last-child");
@@ -637,24 +642,34 @@ function renderFixFail(section) {
       <code class="code-output">${escapeHtml(item.prompt)}</code>
     </div>
     <div class="answer-row">
-      <button class="choice-button" data-answer="FIX" type="button">FIX</button>
-      <button class="choice-button" data-answer="FAIL" type="button">FAIL</button>
+      ${["FIX", "FAIL"].map((choice) => {
+        const selected = local.selected === choice ? "selected" : "";
+        const correct = local.revealed && choice === item.answer ? "correct" : "";
+        const wrong = local.revealed && local.selected === choice && choice !== item.answer ? "wrong" : "";
+        return `<button class="choice-button ${selected} ${correct} ${wrong}" data-answer="${choice}" type="button">${choice}</button>`;
+      }).join("")}
     </div>
-    <div class="feedback ${local.revealed ? "correct" : "hidden"}">
-      <strong>${item.answer}</strong>: ${item.why}
+    <div class="feedback ${local.revealed ? getResultClass(local.selected, item.answer) : "hidden"}">
+      ${answerDetailHtml({ answer: item.answer, why: item.why, prompt: item.prompt })}
     </div>
   `;
   body.querySelectorAll("[data-answer]").forEach((button) => {
     button.addEventListener("click", () => {
-      const correct = button.dataset.answer === item.answer;
-      button.classList.add(correct ? "correct" : "wrong");
-      body.querySelector(".feedback").className = `feedback ${correct ? "correct" : "wrong"}`;
-      body.querySelector(".feedback").innerHTML = `<strong>${correct ? "Correct" : "Not quite"}.</strong> ${item.answer}: ${item.why}`;
+      local.selected = button.dataset.answer;
+      if (appMode === "exam") {
+        renderSection();
+        return;
+      }
       local.revealed = true;
+      renderSection();
     });
   });
   controls.append(
-    makeButton("Reveal Answer", () => {
+    makeButton(appMode === "exam" ? "Submit Answer" : "Reveal Answer", () => {
+      if (appMode === "exam" && !local.selected) {
+        showTemporaryFeedback(body, "Choose FIX or FAIL before submitting.");
+        return;
+      }
       local.revealed = true;
       renderSection();
     }),
@@ -668,13 +683,21 @@ function renderFixFail(section) {
       });
       renderSection();
     }, "secondary"),
+    makeButton("Previous Scenario", () => {
+      retreatRotation(local, section.items.length);
+      local.selected = null;
+      local.revealed = false;
+      renderSection();
+    }, "secondary"),
     makeButton("Next Scenario", () => {
       advanceRotation(local, section.items.length);
+      local.selected = null;
       local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Reset", () => {
       resetRotation(local, section.items.length);
+      local.selected = null;
       local.revealed = false;
       renderSection();
     }, "secondary")
@@ -695,20 +718,30 @@ function renderRapidQuiz(section) {
       <p class="large-prompt">${q.q}</p>
     </div>
     <div class="grid two">
-      ${q.choices.map((choice, index) => `<button class="choice-button ${local.revealed && index === q.answer ? "correct" : ""}" data-choice="${index}" type="button">${letters[index]}. ${choice}</button>`).join("")}
+      ${q.choices.map((choice, index) => {
+        const selected = local.selected === index ? "selected" : "";
+        const correct = local.revealed && index === q.answer ? "correct" : "";
+        const wrong = local.revealed && local.selected === index && index !== q.answer ? "wrong" : "";
+        return `<button class="choice-button ${selected} ${correct} ${wrong}" data-choice="${index}" type="button">${letters[index]}. ${choice}</button>`;
+      }).join("")}
     </div>
-    <div class="feedback ${local.revealed ? "correct" : "hidden"}">
-      <strong>${letters[q.answer]} is correct.</strong> ${q.why}
+    <div class="feedback ${local.revealed ? getResultClass(local.selected, q.answer) : "hidden"}">
+      ${answerDetailHtml({ answer: letters[q.answer] + ". " + q.choices[q.answer], why: q.why, prompt: q.q })}
     </div>
   `;
   body.querySelectorAll("[data-choice]").forEach((button) => {
     button.addEventListener("click", () => {
-      local.revealed = true;
+      local.selected = Number(button.dataset.choice);
+      local.revealed = appMode === "study";
       renderSection();
     });
   });
   controls.append(
-    makeButton("Reveal Answer", () => {
+    makeButton(appMode === "exam" ? "Submit Answer" : "Reveal Answer", () => {
+      if (appMode === "exam" && local.selected === null) {
+        showTemporaryFeedback(body, "Choose an answer before submitting.");
+        return;
+      }
       local.revealed = true;
       renderSection();
     }),
@@ -722,13 +755,21 @@ function renderRapidQuiz(section) {
       });
       renderSection();
     }, "secondary"),
+    makeButton("Previous Question", () => {
+      retreatRotation(local, section.questions.length);
+      local.selected = null;
+      local.revealed = false;
+      renderSection();
+    }, "secondary"),
     makeButton("Next Question", () => {
       advanceRotation(local, section.questions.length);
+      local.selected = null;
       local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Reset", () => {
       resetRotation(local, section.questions.length);
+      local.selected = null;
       local.revealed = false;
       renderSection();
     }, "secondary")
@@ -750,24 +791,29 @@ function renderSingleChoice(section) {
     </div>
     <div class="grid">
       ${active.choices.map((choice, index) => {
+        const selected = local.selected === index ? "selected" : "";
         const result = local.revealed && index === active.answer ? "correct" : "";
-        const wrong = local.selected === index && index !== active.answer ? "wrong" : "";
-        return `<button class="choice-button ${result} ${wrong}" data-choice="${index}" type="button">${index + 1}. ${choice}</button>`;
+        const wrong = local.revealed && local.selected === index && index !== active.answer ? "wrong" : "";
+        return `<button class="choice-button ${selected} ${result} ${wrong}" data-choice="${index}" type="button">${index + 1}. ${choice}</button>`;
       }).join("")}
     </div>
-    <div class="feedback ${local.revealed ? "correct" : "hidden"}">
-      <strong>Correct answer: ${active.answer + 1}.</strong> ${active.why}
+    <div class="feedback ${local.revealed ? getResultClass(local.selected, active.answer) : "hidden"}">
+      ${answerDetailHtml({ answer: `${active.answer + 1}. ${active.choices[active.answer]}`, why: active.why, prompt: active.prompt })}
     </div>
   `;
   body.querySelectorAll("[data-choice]").forEach((button) => {
     button.addEventListener("click", () => {
       local.selected = Number(button.dataset.choice);
-      local.revealed = true;
+      local.revealed = appMode === "study";
       renderSection();
     });
   });
   controls.append(
-    makeButton("Reveal Answer", () => {
+    makeButton(appMode === "exam" ? "Submit Answer" : "Reveal Answer", () => {
+      if (appMode === "exam" && local.selected === null) {
+        showTemporaryFeedback(body, "Choose an answer before submitting.");
+        return;
+      }
       local.revealed = true;
       renderSection();
     }),
@@ -779,6 +825,12 @@ function renderSingleChoice(section) {
         answer: active.choices[active.answer],
         why: active.why
       });
+      renderSection();
+    }, "secondary"),
+    makeButton("Previous Question", () => {
+      retreatRotation(local, questions.length);
+      local.selected = null;
+      local.revealed = false;
       renderSection();
     }, "secondary"),
     makeButton("Next Question", () => {
@@ -839,7 +891,7 @@ function renderEscape(section) {
     makeButton("Reveal Lock Answer", () => {
       const feedback = body.querySelector("#escape-feedback");
       feedback.className = "feedback correct";
-      feedback.textContent = `Answer: ${lock.answers[0]}. ${lock.success}`;
+      feedback.innerHTML = answerDetailHtml({ answer: lock.answers[0], why: lock.success, prompt: lock.prompt });
     }),
     makeButton(getBookmarkLabel("escape", activeIndex), () => {
       toggleBookmark({
@@ -849,6 +901,11 @@ function renderEscape(section) {
         answer: lock.answers[0],
         why: lock.success
       });
+      renderSection();
+    }, "secondary"),
+    makeButton("Previous Lock", () => {
+      retreatRotation(local, section.locks.length);
+      local.complete = false;
       renderSection();
     }, "secondary"),
     makeButton("Next Lock", () => {
@@ -926,6 +983,12 @@ function renderMatching(section) {
         answer: activeSet.commands.map((item, index) => `${index + 1}-${item.answer}`).join(", "),
         why: "Saved matching set for later practice."
       });
+      renderSection();
+    }, "secondary"),
+    makeButton("Previous Set", () => {
+      retreatRotation(local, section.sets.length);
+      local.revealed = false;
+      local.selections = {};
       renderSection();
     }, "secondary"),
     makeButton("Next Set", () => {
@@ -1066,6 +1129,71 @@ function renderBookmarks(section) {
   );
 }
 
+function setAppMode(mode) {
+  appMode = mode;
+  Object.values(state).forEach((local) => {
+    if ("revealed" in local) local.revealed = false;
+    if ("selected" in local) local.selected = null;
+  });
+  renderSection();
+}
+
+function renderModeButtons() {
+  const studyButton = document.getElementById("study-mode");
+  const examButton = document.getElementById("exam-mode");
+  studyButton.classList.toggle("active", appMode === "study");
+  examButton.classList.toggle("active", appMode === "exam");
+  studyButton.setAttribute("aria-pressed", appMode === "study");
+  examButton.setAttribute("aria-pressed", appMode === "exam");
+}
+
+function getResultClass(selected, answer) {
+  if (selected === null || selected === answer) return "correct";
+  return "wrong";
+}
+
+function answerDetailHtml({ answer, why, prompt }) {
+  return `
+    <div class="answer-detail">
+      <p class="answer-line"><strong>Correct answer:</strong> ${escapeHtml(answer)}</p>
+      <p><strong>Why:</strong> ${escapeHtml(why)}</p>
+      <p class="rule-line"><strong>How to reason it out:</strong> ${escapeHtml(getReasoningRule(prompt, why))}</p>
+    </div>
+  `;
+}
+
+function getReasoningRule(prompt, why) {
+  const text = `${prompt || ""} ${why || ""}`.toLowerCase();
+  if (text.includes("169.254") || text.includes("apipa")) {
+    return "A 169.254 address means the device did not receive normal DHCP settings, so check DHCP, cabling, or renew the lease before blaming websites.";
+  }
+  if (text.includes("dns") || text.includes("name") || text.includes("hostname") || text.includes("example.com") || text.includes("google.com")) {
+    return "If numeric IP traffic works but names fail, separate connectivity from name resolution and test DNS with nslookup.";
+  }
+  if (text.includes("gateway") || text.includes("different networks") || text.includes("router")) {
+    return "Traffic leaving the local subnet needs a reachable default gateway or router; compare the host IP, mask, and gateway first.";
+  }
+  if (text.includes("media disconnected") || text.includes("cable") || text.includes("physical") || text.includes("layer 1")) {
+    return "Physical symptoms point to Layer 1, so verify cable, link light, adapter state, wall jack, and switch port before changing software settings.";
+  }
+  if (text.includes("switch") || text.includes("mac") || text.includes("vlan") || text.includes("spanning tree") || text.includes("stp")) {
+    return "Switching issues usually live at Layer 2, where MAC learning, VLAN membership, and STP port state decide whether frames can move.";
+  }
+  if (text.includes("ping") || text.includes("tracert") || text.includes("netstat") || text.includes("ipconfig")) {
+    return "Pick the command that matches the question: ipconfig for local settings, ping for reachability, tracert for path, nslookup for DNS, and netstat for connections.";
+  }
+  if (text.includes("port") || text.includes("http") || text.includes("https") || text.includes("ssh")) {
+    return "Service questions often reduce to protocol and port mapping: HTTP 80, HTTPS 443, DNS 53, and SSH 22.";
+  }
+  return "Start from the evidence in the prompt, identify the OSI layer or service involved, then choose the answer that fixes that specific failure.";
+}
+
+function showTemporaryFeedback(body, message) {
+  const existing = body.querySelector(".feedback");
+  existing.className = "feedback wrong";
+  existing.textContent = message;
+}
+
 function getMatchingScore(section, local) {
   const correct = section.commands.filter((item, index) => local.selections[index] === item.answer).length;
   const total = section.commands.length;
@@ -1098,6 +1226,16 @@ function advanceRotation(local, length) {
     local.position = 0;
   } else {
     local.position += 1;
+  }
+  local.index = local.order[local.position];
+}
+
+function retreatRotation(local, length) {
+  ensureRotation(local, length);
+  if (local.position <= 0) {
+    local.position = length - 1;
+  } else {
+    local.position -= 1;
   }
   local.index = local.order[local.position];
 }
@@ -1210,7 +1348,7 @@ function renderTimer() {
 }
 
 function escapeHtml(value) {
-  return value
+  return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");

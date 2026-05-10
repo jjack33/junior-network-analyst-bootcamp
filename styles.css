@@ -56,6 +56,31 @@ button {
   gap: 20px;
 }
 
+.mode-switch {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(18, 25, 34, 0.9);
+}
+
+.mode-button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: var(--muted);
+  background: transparent;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mode-button.active {
+  color: var(--ink);
+  background: var(--green);
+}
+
 .eyebrow {
   margin: 0 0 6px;
   color: var(--green);
@@ -301,6 +326,7 @@ h3 {
   padding: 14px 16px;
   border: 1px solid var(--line);
   color: var(--muted);
+  line-height: 1.45;
 }
 
 .feedback.correct {
@@ -313,6 +339,23 @@ h3 {
   color: #ffe2e7;
   border-color: var(--red);
   background: rgba(251, 113, 133, 0.13);
+}
+
+.answer-detail {
+  display: grid;
+  gap: 10px;
+}
+
+.answer-detail p {
+  margin: 0;
+}
+
+.answer-detail .answer-line {
+  color: var(--text);
+}
+
+.answer-detail .rule-line {
+  color: #cfe0f4;
 }
 
 .instructor-panel {
@@ -485,7 +528,8 @@ h3 {
   }
 
   .section-toolbar > * + *,
-  .instructor-panel > * + * {
+  .instructor-panel > * + *,
+  .mode-switch {
     margin-top: 14px;
   }
 
