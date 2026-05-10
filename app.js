@@ -702,6 +702,42 @@ const state = {
   final: { revealed: false, page: 0, order: [] }
 };
 let bookmarks = loadBookmarks();
+let comptiaTimerId = null;
+
+function comptiaAdvance(local, bankLength, bookmarkItem, isWrong) {
+  if (comptiaTimerId) { clearTimeout(comptiaTimerId); comptiaTimerId = null; }
+  if (isWrong) addBookmark(bookmarkItem);
+  const revealedCount = Object.values(local.answers).filter((a) => a.revealed).length;
+  const allDone = revealedCount >= bankLength;
+  comptiaTimerId = setTimeout(() => {
+    comptiaTimerId = null;
+    if (allDone) {
+      moveSection(1);
+    } else {
+      advanceRotation(local, bankLength);
+      renderSection();
+    }
+  }, 6000);
+}
+
+function injectCountdownBar(body) {
+  const existing = body.querySelector(".comptia-countdown");
+  if (existing) existing.remove();
+  const wrapper = document.createElement("div");
+  wrapper.className = "comptia-countdown";
+  wrapper.innerHTML = `<span class="comptia-countdown-label">Advancing in <strong class="comptia-countdown-secs">6</strong>s…</span><div class="comptia-bar"><div class="comptia-bar-fill"></div></div>`;
+  body.appendChild(wrapper);
+  const fill = wrapper.querySelector(".comptia-bar-fill");
+  const secsEl = wrapper.querySelector(".comptia-countdown-secs");
+  let remaining = 6;
+  fill.style.width = "100%";
+  const tick = setInterval(() => {
+    remaining--;
+    secsEl.textContent = remaining;
+    fill.style.width = `${(remaining / 6) * 100}%`;
+    if (remaining <= 0) clearInterval(tick);
+  }, 1000);
+}
 
 function computeExamScore() {
   let answered = 0, correct = 0;
@@ -861,10 +897,18 @@ function renderFixFail(section) {
         return;
       }
       local.revealed = true;
-      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === item.answer };
+      const isCorrect = local.selected === item.answer;
+      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: isCorrect };
       renderSection();
       if (appMode === "comptia") {
-        setTimeout(() => { advanceRotation(local, bank.items.length); renderSection(); }, 1500);
+        injectCountdownBar(body);
+        comptiaAdvance(local, bank.items.length, {
+          id: "warmup-" + activeIndex,
+          section: section.title,
+          prompt: item.prompt,
+          answer: item.answer,
+          why: item.why
+        }, !isCorrect);
       }
     }),
     makeButton(getBookmarkLabel("warmup", activeIndex), () => {
@@ -882,6 +926,7 @@ function renderFixFail(section) {
       renderSection();
     }, "secondary")] : []),
     makeButton("Next Scenario", () => {
+      if (comptiaTimerId) { clearTimeout(comptiaTimerId); comptiaTimerId = null; }
       advanceRotation(local, bank.items.length);
       renderSection();
     }, "secondary"),
@@ -948,10 +993,18 @@ function renderRapidQuiz(section) {
         return;
       }
       local.revealed = true;
-      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === q.answer };
+      const isCorrect = local.selected === q.answer;
+      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: isCorrect };
       renderSection();
       if (appMode === "comptia") {
-        setTimeout(() => { advanceRotation(local, bank.questions.length); renderSection(); }, 1500);
+        injectCountdownBar(body);
+        comptiaAdvance(local, bank.questions.length, {
+          id: "sprint-" + activeIndex,
+          section: section.title,
+          prompt: q.q,
+          answer: letters[q.answer] + ". " + q.choices[q.answer],
+          why: q.why
+        }, !isCorrect);
       }
     }),
     makeButton(getBookmarkLabel("sprint", activeIndex), () => {
@@ -969,6 +1022,7 @@ function renderRapidQuiz(section) {
       renderSection();
     }, "secondary")] : []),
     makeButton("Next Question", () => {
+      if (comptiaTimerId) { clearTimeout(comptiaTimerId); comptiaTimerId = null; }
       advanceRotation(local, bank.questions.length);
       renderSection();
     }, "secondary"),
@@ -1035,10 +1089,18 @@ function renderSingleChoice(section) {
         return;
       }
       local.revealed = true;
-      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: local.selected === active.answer };
+      const isCorrect = local.selected === active.answer;
+      local.answers[activeIndex] = { selected: local.selected, revealed: true, correct: isCorrect };
       renderSection();
       if (appMode === "comptia") {
-        setTimeout(() => { advanceRotation(local, questions.length); renderSection(); }, 1500);
+        injectCountdownBar(body);
+        comptiaAdvance(local, questions.length, {
+          id: section.id + "-" + activeIndex,
+          section: section.title,
+          prompt: active.prompt,
+          answer: active.choices[active.answer],
+          why: active.why
+        }, !isCorrect);
       }
     }),
     makeButton(getBookmarkLabel(section.id, activeIndex), () => {
@@ -1056,6 +1118,7 @@ function renderSingleChoice(section) {
       renderSection();
     }, "secondary")] : []),
     makeButton("Next Question", () => {
+      if (comptiaTimerId) { clearTimeout(comptiaTimerId); comptiaTimerId = null; }
       advanceRotation(local, questions.length);
       renderSection();
     }, "secondary"),
